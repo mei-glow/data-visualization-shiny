@@ -21,3 +21,7 @@ dist/
 
 # Shiny and local app state
 *.log
+
+rsconnect-python/
+split_excel_sheets.py
+EVDataExplorer2025.xlsx
