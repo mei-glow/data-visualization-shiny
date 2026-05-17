@@ -385,6 +385,82 @@ html, body {
 }
 .footer a { color: var(--muted); text-decoration: none; }
 .footer a:hover { color: var(--teal); }
+.footer {
+    position: relative;
+}
+
+.footer-links {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+}
+
+.footer-info-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.footer-info-btn:hover {
+    color: var(--teal);
+}
+
+.footer-tooltip {
+    position: absolute;
+    right: 40px;
+    bottom: 62px;
+    width: min(420px, calc(100vw - 40px));
+    background: var(--panel);
+    border: 1px solid rgba(45,212,191,0.28);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+    z-index: 2000;
+    color: var(--white);
+}
+
+.footer-tooltip.hidden {
+    display: none;
+}
+
+.footer-tooltip-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--teal);
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+.footer-tooltip-body {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--muted);
+}
+
+.footer-tooltip-body ul {
+    margin: 8px 0 0 18px;
+    padding: 0;
+}
+
+.footer-tooltip-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.footer-tooltip-close:hover {
+    color: var(--red);
+}
 
 /* ── ANIMATIONS ── */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -482,7 +558,7 @@ app_ui = ui.page_fluid(
         });
         """),
 
-        # D3 race chart script
+                # D3 race chart script
         ui.tags.script("""
         document.addEventListener("DOMContentLoaded", () => {
           function waitForRaceData() {
@@ -675,6 +751,94 @@ app_ui = ui.page_fluid(
           }
 
           waitForRaceData();
+        });
+        """),
+
+        # Footer tooltip script
+        ui.tags.script("""
+        document.addEventListener("DOMContentLoaded", () => {
+          const tooltip = document.querySelector("#footer-tooltip");
+          const title = document.querySelector("#footer-tooltip-title");
+          const body = document.querySelector("#footer-tooltip-body");
+          const closeBtn = document.querySelector("#footer-tooltip-close");
+          const buttons = document.querySelectorAll(".footer-info-btn");
+
+          const content = {
+            methodology: {
+              title: "Methodology",
+              body: `
+                <p>This dashboard uses a data narrative approach to describe the global e-mobility transition.</p>
+                <ul>
+                  <li>Historical EV stock, sales share, stock share, and charger data are filtered by region, year, powertrain, and vehicle mode.</li>
+                  <li>Country-level rankings exclude aggregate regions such as World, Europe, EU27, and Asia Pacific.</li>
+                  <li>Forecasting uses IEA STEPS projections where available, with ARIMA/CAGR used only as a statistical comparison baseline.</li>
+                </ul>
+              `
+            },
+            sources: {
+              title: "Data Sources",
+              body: `
+                <p>Main dataset: IEA Global EV Outlook 2025 dataset.</p>
+                <ul>
+                  <li>EV stock and EV stock share</li>
+                  <li>EV sales share</li>
+                  <li>Public charging points by charger type</li>
+                  <li>Projection-STEPS scenario values through 2030</li>
+                </ul>
+                <p>Visual assets are stored locally in the app's <strong>www/images</strong> folder.</p>
+              `
+            },
+            privacy: {
+              title: "Privacy Policy",
+              body: `
+                <p>This app is a static analytical dashboard and does not intentionally collect personal user data.</p>
+                <ul>
+                  <li>No login or account information is required.</li>
+                  <li>No user-entered personal information is stored.</li>
+                  <li>Interactions such as scrolling, filtering, and chart viewing are used only inside the current browser session.</li>
+                </ul>
+              `
+            }
+          };
+
+          function openTooltip(panelName) {
+            const selected = content[panelName];
+            if (!selected || !tooltip || !title || !body) return;
+
+            title.innerHTML = selected.title;
+            body.innerHTML = selected.body;
+            tooltip.classList.remove("hidden");
+          }
+
+          function closeTooltip() {
+            if (tooltip) tooltip.classList.add("hidden");
+          }
+
+          buttons.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+              e.preventDefault();
+              openTooltip(btn.dataset.panel);
+            });
+          });
+
+          if (closeBtn) {
+            closeBtn.addEventListener("click", closeTooltip);
+          }
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeTooltip();
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!tooltip || tooltip.classList.contains("hidden")) return;
+
+            const clickedButton = e.target.closest(".footer-info-btn");
+            const clickedTooltip = e.target.closest("#footer-tooltip");
+
+            if (!clickedButton && !clickedTooltip) {
+              closeTooltip();
+            }
+          });
         });
         """),
     ),
@@ -961,29 +1125,32 @@ app_ui = ui.page_fluid(
             ui.p("Where raw scale meets industrial ambition."),
             ui.HTML("""
             <div id="race-chart-wrap" class="chart-panel">
-              <div id="race-title-row">
+            <div id="race-title-row">
                 <div>
-                  <div class="chart-title">TOP EV MARKETS BY STOCK (MILLIONS)</div>
-                  <div style="color:var(--muted);font-size:0.85rem;margin-top:4px;">Bar chart race, 2010–2024</div>
+                <div class="chart-title">TOP EV MARKETS BY STOCK (MILLIONS)</div>
+                <div style="color:var(--muted);font-size:0.85rem;margin-top:4px;">Bar chart race, 2010–2024</div>
                 </div>
                 <div id="race-year-big">2010</div>
-              </div>
-              <svg id="race-svg"></svg>
-              <div id="race-controls">
+            </div>
+
+            <svg id="race-svg"></svg>
+
+            <div id="race-controls">
                 <button id="race-play">▶ Play</button>
                 <button id="race-pause">⏸ Pause</button>
 
                 <div id="race-slider-wrap">
-                    <input id="race-range" type="range" min="2010" max="2024" value="2010" step="1">
+                <input id="race-range" type="range" min="2010" max="2024" value="2010" step="1">
 
-                    <div id="race-year-labels">
+                <div id="race-year-labels">
                     <span>2010</span>
                     <span>2015</span>
                     <span>2020</span>
                     <span>2024</span>
-                    </div>
                 </div>
                 </div>
+            </div>
+            </div>
             """),
             ui.output_ui("race_data_json"),
         ),
@@ -1222,7 +1389,19 @@ app_ui = ui.page_fluid(
     # ── FOOTER
     ui.div(
         ui.HTML("© 2025 Global EV Data Narrative. Data: IEA Global EV Outlook 2025."),
-        ui.HTML('<div><a href="#">Methodology</a> &nbsp; <a href="#">Data Sources</a> &nbsp; <a href="#">Privacy Policy</a></div>'),
+        ui.HTML("""
+        <div class="footer-links">
+        <button class="footer-info-btn" data-panel="methodology">Methodology</button>
+        <button class="footer-info-btn" data-panel="sources">Data Sources</button>
+        <button class="footer-info-btn" data-panel="privacy">Privacy Policy</button>
+        </div>
+
+        <div id="footer-tooltip" class="footer-tooltip hidden">
+        <button id="footer-tooltip-close" class="footer-tooltip-close">×</button>
+        <div id="footer-tooltip-title" class="footer-tooltip-title"></div>
+        <div id="footer-tooltip-body" class="footer-tooltip-body"></div>
+        </div>
+        """),
         class_="footer"
     ),
 )
