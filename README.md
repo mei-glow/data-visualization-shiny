@@ -31,7 +31,3 @@ python app.py
 
 Then open the local URL shown in the terminal to view the app.
 
-## Notes
-
-- The app expects `EVDataExplorer2025.xlsx` to be located alongside `app.py`.
-- If the workbook is missing, add it to the project root.
