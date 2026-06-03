@@ -243,9 +243,9 @@ ur_clean = ur_clean[ur_clean['country'].isin(keep)]
 
 
 # STEP 7: SAVE CLEANED INTERMEDIATE FILES
-em_clean.to_csv('Emission_cleaned.csv', index=False)
-el_clean.to_csv('Electricity_cleaned.csv', index=False)
-ur_clean.to_csv('Urban_Pct_cleaned.csv', index=False)
+em_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Emission_cleaned.csv', index=False)
+el_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Electricity_cleaned.csv', index=False)
+ur_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Urban_Pct_cleaned.csv', index=False)
 
 # STEP 8: MERGE ALL 3 CLEANED FILES INTO ONE OUTPUT
 em_m = em_clean.rename(columns={'Entity': 'region_country', 'Year': 'year'})

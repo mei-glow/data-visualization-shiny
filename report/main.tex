@@ -1,0 +1,85 @@
+\documentclass[11pt,conference]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lipsum} % For generating dummy text
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% Setup header geometry for the first page to fit the custom header
+\setlength{\headheight}{40pt}
+\setlength{\headsep}{15pt}
+
+% Define the custom first page header style
+\fancypagestyle{firststyle}{
+  \fancyhf{}
+  % Left header: School Logo
+  \fancyhead[L]{\includegraphics[height=12mm]{figures/vinuni_logo.png}}
+  % Right header: Course Information
+  \fancyhead[R]{\begin{tabular}{r}
+      \textbf{COMP4010 - Data Visualization} \\
+      June 3, 2026
+  \end{tabular}}
+  \renewcommand{\headrulewidth}{0.5pt}
+}
+
+\title{E-Mobility Global Transition Dashboard: \\ A Comprehensive Report}
+
+\author{
+    \IEEEauthorblockN{Pham Quynh Trang}
+    \IEEEauthorblockA{
+    22trang.pq@vinuni.edu.vn}
+    \and
+    \IEEEauthorblockN{Tran Phuong Mai}
+    \IEEEauthorblockA{
+    24mai.tp@vinuni.edu.vn}
+    \and
+    \IEEEauthorblockN{Nguyen Thi Bao Tien}
+    \IEEEauthorblockA{
+    24tien.ntb@vinuni.edu.vn}
+    \and
+    \IEEEauthorblockN{Nguyen Khanh Ngoc}
+    \IEEEauthorblockA{
+    24ngoc.nk@vinuni.edu.vn}
+}
+
+\begin{document}
+\maketitle
+
+\thispagestyle{firststyle}
+\pagestyle{firststyle}
+
+\begin{abstract}
+The global transition toward electric vehicles (EVs) has been one of the most transformative milestone of automative industry in this century. This projects develops an interative dashboard to demonstrate cross-country EV adoption pat-
+terns and identify economic, environmental, and infrastructure factors associated with EV market development. The end users would be policymakers, industry analysts and grid operators.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Data Visualization, EDA, Data Modelling, Interactive Dashboard.
+\end{IEEEkeywords}
+
+\section{Project Overview}
+
+\section{Data Processing}
+
+
+\section{Exploratory Data Analysis}
+
+\section{Data Modelling}
+
+
+\section{Interactive Dashboard}
+
+\section{Github Repository}
+The complete source code, datasets, data processing scripts, and instructions for running the dashboard locally can be found at the following GitHub repository:
+
+\vspace{0.5em}
+\noindent \textbf{Repository Link:} \href{https://github.com/mei-glow/data-visualization-shiny}{\url{https://github.com/mei-glow/data-visualization-shiny}}
+
+\section*{Acknowledgment}
+Acknowledge the instructor, teaching assistants, or any external resources/datasets that helped make this project possible.
+
+% --- Bibliography Section ---
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

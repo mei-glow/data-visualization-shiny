@@ -1,0 +1,23 @@
+\section{Data Processing}
+\subsection{Data Overview}
+The primary dataset for this project is the \textbf{Global EV Outlook 2025}, developed by the Electric Vehicles Initiative (EVI) and sourced directly via CSV from the International Energy Agency (IEA). It tracks global electric mobility developments, encompassing EV stock, sales, and charging infrastructure from 2010 to 2024, alongside policy-driven projections out to 2030. The dataset includes key dimensions such as geographic scope (\texttt{region\_country}), vehicle category (\texttt{mode}), technology type (\texttt{powertrain}), and specific metrics (\texttt{parameter}, \texttt{value}, \texttt{unit}).
+
+To support advanced causality modeling, this core data is augmented with three external socio-economic and environmental datasets sourced from the World Bank and Our World in Data:
+\begin{itemize}
+    \item \textbf{Emission.csv:} Tracks greenhouse gas emissions per capita.
+    \item \textbf{Urban\_Pct.csv:} Records the urbanization rate by country.
+    \item \textbf{Electricity.csv:} Provides historical population figures and total electricity generation.
+\end{itemize}
+
+%--------------------------------------------
+
+\subsection{Processing Pipeline}
+To ensure consistency across the primary EV data and the external causal variables, a robust preprocessing pipeline was implemented in Python. The workflow consists of the following key stages:
+
+\begin{itemize}
+    \item \textbf{Data Reshaping and Type Casting:} Raw files were ingested and standardized. Notably, the urbanization dataset was melted from a wide format (years as columns) into a standard long format to match the time-series structure of the other tables. Quantitative variables were explicitly coerced into numeric formats.
+    \item \textbf{Nomenclature Standardization and Filtering:} To prevent data loss during merging, country names across the emission, electricity, and urbanization datasets (e.g., ``Czechia'', ``South Korea'') were remapped to perfectly align with the 54 specific countries present in the IEA EV dataset. Generic ``Rest of the world'' rows were removed to maintain data precision.
+    \item \textbf{Custom Regional Aggregation:} Pre-existing regional rows were stripped from the datasets. Instead, custom macro-regions (e.g., ``EU27'', ``Asia Pacific'', ``World'') were computed from scratch by summing the metrics of their constituent EV-specific countries. This guarantees that regional totals strictly reflect the project's target markets.
+    \item \textbf{Data Merging and Enrichment:} A master index of unique \texttt{region\_country} and \texttt{year} combinations was generated. The three external datasets were then consolidated into a single contextual table via sequential left-joins. Standard ISO 3166-1 alpha-3 country codes were mapped to all geographic entities for downstream visualization.
+    \item \textbf{Final Output Generation:} The main EV dataset was cleaned (removing pre-2030 projection rows and standardizing terminology), and the merged contextual dataset was filtered to the historical scope of 2010--2024. Both tables were exported as clean, production-ready CSV files.
+\end{itemize}
