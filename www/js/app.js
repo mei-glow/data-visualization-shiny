@@ -674,12 +674,12 @@ function TabOverview() {
     title: "World charging points over time",
     sub: "Slow public chargers (Level 1/2, AC) lead in count and have stayed ahead of fast DC chargers throughout - Slow makes up ~58% of the stack in 2024.",
     mount: mountChargersWorld,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Slow chargers carry the network; fast chargers are growing faster on a percentage basis (3.5\xD7 since 2020) but still only ", /*#__PURE__*/React.createElement("strong", null, "42%"), " of public points.")
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Slow chargers carry the network; fast chargers are growing faster on a percentage basis (3.5\xD7 since 2020) but still only ", /*#__PURE__*/React.createElement("strong", null, "44.2%"), " of public points.")
   })), /*#__PURE__*/React.createElement(ChartCard, {
     title: "EV stock proportion by mode and powertrain, 2024",
     sub: "Within each powertrain, which vehicle modes dominate.",
     mount: mountModeMixPies,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "BEVs span all three modes, while PHEVs are essentially a passenger-car technology and FCEVs split between cars and heavy commercial vehicles.")
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "BEV span all three modes -> BEV predominantly deployed in 2-and-3 wheelers, while also maintaining a presence in passenger car.")
   })), /*#__PURE__*/React.createElement(Insight, {
     tagLabel: "Hook",
     chips: [{
@@ -1138,7 +1138,7 @@ function TabSocio() {
     title: "Gas prices, transport emissions, and EV adoption",
     sub: "Bars: world transport CO\u2082 (Gt, left). Solid line: average gas price (USD/L, right). Dotted: EV sales share (%). Are EVs co-moving with the external pressure to electrify?",
     mount: mountGasEmissions,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Transport CO\u2082 has ", /*#__PURE__*/React.createElement("strong", null, "plateaued since 2018"), " even as the fleet grew - EVs are bending the emissions curve. Gas-price spikes (2022) align with EV-share accelerations.")
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Per-capita CO\u2082 emissions rose through 2019 before declining after 2020, while EV adoption accelerated. Gas-price spikes (2022) align with EV-share accelerations.")
   }), /*#__PURE__*/React.createElement("div", {
     className: "kpi-row",
     style: {

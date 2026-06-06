@@ -370,7 +370,7 @@ function TabOverview() {
               title="World charging points over time"
               sub="Slow public chargers (Level 1/2, AC) lead in count and have stayed ahead of fast DC chargers throughout - Slow makes up ~58% of the stack in 2024."
               mount={mountChargersWorld}
-              callout={<>Slow chargers carry the network; fast chargers are growing faster on a percentage basis (3.5× since 2020) but still only <strong>42%</strong> of public points.</>}
+              callout={<>Slow chargers carry the network; fast chargers are growing faster on a percentage basis (3.5× since 2020) but still only <strong>44.2%</strong> of public points.</>}
             />
           </div>
 
@@ -378,7 +378,7 @@ function TabOverview() {
             title="EV stock proportion by mode and powertrain, 2024"
             sub="Within each powertrain, which vehicle modes dominate."
             mount={mountModeMixPies}
-            callout={<>BEVs span all three modes, while PHEVs are essentially a passenger-car technology and FCEVs split between cars and heavy commercial vehicles.</>}
+            callout={<>BEVs span all three modes -> BEV predominantly deployed in 2-and-3 wheelers, while also maintaining a presence in passenger car.</>}
           />
         </div>
 
@@ -769,7 +769,7 @@ function TabSocio() {
             title="Gas prices, transport emissions, and EV adoption"
             sub="Bars: world transport CO₂ (Gt, left). Solid line: average gas price (USD/L, right). Dotted: EV sales share (%). Are EVs co-moving with the external pressure to electrify?"
             mount={mountGasEmissions}
-            callout={<>Transport CO₂ has <strong>plateaued since 2018</strong> even as the fleet grew - EVs are bending the emissions curve. Gas-price spikes (2022) align with EV-share accelerations.</>}
+            callout={<>Per-capita CO₂ emissions rose through 2019 before declining after 2020, while EV adoption accelerated. Gas-price spikes (2022) align with EV-share accelerations.</>}
           />
 
           <div className="kpi-row" style={{ marginTop: 4 }}>
