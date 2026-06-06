@@ -1,4 +1,4 @@
-\documentclass[11pt,conference]{IEEEtran}
+\documentclass[12pt,conference]{IEEEtran}
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{lipsum} % For generating dummy text
@@ -49,8 +49,7 @@
 \pagestyle{firststyle}
 
 \begin{abstract}
-The global transition toward electric vehicles (EVs) has been one of the most transformative milestone of automative industry in this century. This projects develops an interative dashboard to demonstrate cross-country EV adoption pat-
-terns and identify economic, environmental, and infrastructure factors associated with EV market development. The end users would be policymakers, industry analysts and grid operators.
+The global transition to electric vehicles (EVs) is accelerating, yet adoption remains uneven across countries and market segments. This project develops an interactive visual analytics dashboard to examine how EV sales, vehicle stocks, charging infrastructure, market composition, and socioeconomic conditions evolved from 2010 to 2024, with policy-based projections to 2030. The dashboard integrates the IEA Global EV Outlook 2025 dataset with external indicators on population, urbanization, electricity generation, emissions, and fuel prices. A hybrid Python Shiny, React, and Plotly architecture supports linked filtering, geographic exploration, animated rankings, and model-result interpretation. Cross-country comparisons show that high EV adoption is concentrated in markets with dense charging networks, while seven of the ten leading EV markets are battery-electric-vehicle dominant. Regression and model-comparison views further explore factors associated with adoption. The resulting application helps policymakers, analysts, and infrastructure planners identify transition gaps and distinguish rapid EV sales growth from the slower turnover of the total vehicle fleet.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -68,13 +67,16 @@ Data Visualization, EDA, Data Modelling, Interactive Dashboard.
 
 \section{Dashboard UI}
 
-\section{Technical Integration}
+\input{sections/tech_integration}
 
 \section{Github Repository}
 The complete source code, datasets, data processing scripts, and instructions for running the dashboard locally can be found at the following GitHub repository:
 
 \vspace{0.5em}
 \noindent \textbf{Repository Link:} \href{https://github.com/mei-glow/data-visualization-shiny}{\url{https://github.com/mei-glow/data-visualization-shiny}}
+
+\vspace{0.5em}
+\noindent \textbf{Live Shiny App:} \href{https://mei-glow.shinyapps.io/data-visualization-shiny11/}{\url{https://mei-glow.shinyapps.io/data-visualization-shiny11/}}
 
 \section*{Acknowledgment}
 Acknowledge the instructor, teaching assistants, or any external resources/datasets that helped make this project possible.
