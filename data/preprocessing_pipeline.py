@@ -33,10 +33,10 @@ import numpy as np
 log_lines = []
 
 # STEP 1: LOAD RAW FILES AND INSPECT STRUCTURE
-ev_df = pd.read_csv("D://Data_Projects//data-visualization-shiny//data//raw_data//EVDataExplorer2025.csv")
-em = pd.read_csv('D://Data_Projects//data-visualization-shiny//data//raw_data//Emission.csv')
-ur = pd.read_csv('D://Data_Projects//data-visualization-shiny//data//raw_data//Urban_Pct.csv', encoding='utf-8-sig')
-el = pd.read_csv('D://Data_Projects//data-visualization-shiny//data//raw_data//Electricity.csv')
+ev_df = pd.read_csv("./raw_data/EVDataExplorer2025.csv")
+em = pd.read_csv("./raw_data/Emission.csv")
+ur = pd.read_csv("./raw_data/Urban_Pct.csv", encoding='utf-8-sig')
+el = pd.read_csv("./raw_data/Electricity.csv")
 # clean country string
 el['country'] = el['country'].str.strip()
 # convert population and electricity column to numeric
@@ -58,7 +58,7 @@ ur_long = ur_long.dropna(subset=['Urban_pct'])
 ur_long.rename(columns={'Country Name': 'country'}, inplace=True)
 
 
-# STEP 3: REMOVE "Rest of the world" ROWS
+# Step 3: Clean main data: GlobalEVOutlook2025
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
@@ -98,7 +98,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
 
     return df.reset_index(drop=True)
 
-
+# STEP 4: REMOVE "Rest of the world" ROWS
 for df, col in [(em, 'Entity',),
                 (el, 'country'),
                 (ur_long, 'country')]:
@@ -110,7 +110,7 @@ for df, col in [(em, 'Entity',),
 ev_df = preprocess(ev_df)
 
 
-# STEP 4: STANDARDIZE COUNTRY NAMES
+# STEP 5: STANDARDIZE COUNTRY NAMES
 name_map_em_el = {
     'Czechia': 'Czech Republic',
     'South Korea': 'Korea',
@@ -213,21 +213,21 @@ def add_region_aggregates(df, country_col, year_col, value_cols):
     return pd.concat([df] + region_frames, ignore_index=True), existing
 
 
-# 5a. Emission
+# 6a. Emission
 print("5a. Emission (Greenhouse gas emissions per capita)")
 em_clean, em_removed = add_region_aggregates(
     em, 'Entity', 'Year', ['Greenhouse gas emissions per capita']
 )
 print(f"  Result: {em_clean.shape[0]} rows\n")
 
-# 5b. Electricity
+# 6b. Electricity
 print("5b. Electricity (population, electricity_generation)")
 el_clean, el_removed = add_region_aggregates(
     el, 'country', 'year', ['population', 'electricity_generation']
 )
 print(f"  Result: {el_clean.shape[0]} rows\n")
 
-# 5c. Urban_Pct
+# 6c. Urban_Pct
 print("### 5c. Urban_Pct (Urban_pct)")
 ur_clean, ur_removed = add_region_aggregates(
     ur_long, 'country', 'year', ['Urban_pct']
@@ -235,19 +235,19 @@ ur_clean, ur_removed = add_region_aggregates(
 print(f"  Result: {ur_clean.shape[0]} rows")
 
 
-# STEP 6: FILTER TO ONLY EV COUNTRIES + REGIONS
+# STEP 7: FILTER TO ONLY EV COUNTRIES + REGIONS
 keep = set(list(ev_countries) + needed_regions)
 em_clean = em_clean[em_clean['Entity'].isin(keep)]
 el_clean = el_clean[el_clean['country'].isin(keep)]
 ur_clean = ur_clean[ur_clean['country'].isin(keep)]
 
 
-# STEP 7: SAVE CLEANED INTERMEDIATE FILES
-em_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Emission_cleaned.csv', index=False)
-el_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Electricity_cleaned.csv', index=False)
-ur_clean.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//Urban_Pct_cleaned.csv', index=False)
+# STEP 8: SAVE CLEANED INTERMEDIATE FILES
+em_clean.to_csv("./cleaned_data/Emission_cleaned.csv", index=False)
+el_clean.to_csv("./cleaned_data/Electricity_cleaned.csv", index=False)
+ur_clean.to_csv("./cleaned_data/Urban_Pct_cleaned.csv", index=False)
 
-# STEP 8: MERGE ALL 3 CLEANED FILES INTO ONE OUTPUT
+# STEP 9: MERGE ALL 3 CLEANED FILES INTO ONE OUTPUT
 em_m = em_clean.rename(columns={'Entity': 'region_country', 'Year': 'year'})
 el_m = el_clean.rename(columns={'country': 'region_country'})
 ur_m = ur_clean.rename(columns={'country': 'region_country'})
@@ -273,7 +273,7 @@ merged = all_keys.merge(
 print(f"Merged shape: {merged.shape[0]} rows x {merged.shape[1]} cols")
 
 
-# STEP 9: ADD ISO COUNTRY CODES
+# STEP 10: ADD ISO COUNTRY CODES
 print("\nSTEP 9: Add ISO 3166-1 alpha-3 country codes\n")
 
 iso_codes = {
@@ -304,10 +304,10 @@ if len(unmapped) > 0:
     print(f"WARNING: No code for: {list(unmapped)}")
 
 
-# STEP 10: filter year 2010 - 2024
+# STEP 11: filter year 2010 - 2024
 merged = merged[(merged['year'] >= 2010) & (merged['year'] <= 2024)]
 
-# STEP 11: FINAL OUTPUT
+# STEP 12: FINAL OUTPUT
 print("\nSTEP 10: Final output\n")
 
 output_cols = [
@@ -322,7 +322,7 @@ for col in output_cols[3:]:
     n = merged[col].isna().sum()
     print(f"  {col}: {n} nulls ({n / len(merged) * 100:.1f}%)")
 
-merged.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//merged_output.csv', index=False)
+merged.to_csv("./cleaned_data/merged_output.csv", index=False)
 print(f"\nSaved: merged_output.csv")
-ev_df.to_csv('D://Data_Projects//data-visualization-shiny//data//cleaned_data//ev2025.csv', index=False)
+ev_df.to_csv("./cleaned_data/ev2025.csv", index=False)
 print(f"\nSaved: ev2025.csv")
