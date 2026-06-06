@@ -5,6 +5,7 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 
+
 % Setup header geometry for the first page to fit the custom header
 \setlength{\headheight}{40pt}
 \setlength{\headsep}{15pt}
@@ -22,7 +23,7 @@
   \renewcommand{\headrulewidth}{0.5pt}
 }
 
-\title{E-Mobility Global Transition Dashboard: \\ A Comprehensive Report}
+\title{Global Electric Mobility Transition Dashboard: \\ A Comprehensive Report}
 
 \author{
     \IEEEauthorblockN{Pham Quynh Trang}
@@ -58,12 +59,183 @@ Data Visualization, EDA, Data Modelling, Interactive Dashboard.
 \end{IEEEkeywords}
 
 \section{Project Overview}
+The transition to electric vehicles (EVs) is reshaping the global transportation sector and accelerating efforts toward decarbonization. This project develops an interactive dashboard to explore EV adoption patterns across countries and over time. Using descriptive analytics and statistical causality techniques, the dashboard evaluates how economic, infrastructure, energy, and environmental factors are associated with EV market development. The resulting insights are intended to support policymakers, industry analysts, and grid operators in understanding the drivers of EV adoption and informing future planning decisions.
 
+%--------------------------------------------------------------------------------------------
 \section{Data Processing}
+\subsection{Preprocessing Pipeline}
+We integrated data from multiple sources to deliver a unified analysis in E-Mobility Global Transition Dashboard. The primary dataset, EVDataExplorer2025 from the International Energy Agency (IEA), was supplemented with 4 additional features from external datasets including \texttt{greenhouse gas emissions per capita}, \texttt{population}, \texttt{urban population percentage}, and \texttt{electricity generation indicators}. Since they are collected from different sources, a systematic preprocessing pipeline was implemented to ensure analytical reliability. All were subsequently filtered to retain only the 54 EV-related countries and the eight reporting regions.
 
+\paragraph{EVDataExplorer2025 \cite{iea2025evoutlook}} Descriptive labels were introduced for aggregation groups, charging infrastructure categories, and oil displacement metrics (e.g. \texttt{Oil displacement, million lge} $\rightarrow$ \texttt{Oil displacement (Mlge)}) to improve readability. In addition, a binary flag \texttt{is\_projection} was created to distinguish historical observations from future scenario data. Projection records where \texttt{category} = \texttt{Projection-STEPS} and \texttt{year < 2030} were also removed.
 
+\paragraph{Urban Population Percentage \cite{worldbank2025urban}} It was reshaped from wide format into long format. Country names were then standardized across all sources to align with countries from EV dataset. For example, converting United States to USA, South Korea to Korea, and Vietnam to Viet Nam. We also recomputed regional values from constituent countries to ensure aggregation consistency across all geographical levels. 
+
+\paragraph{Greenhouse Gas Emissions Dataset \cite{owid2025ghg}} Preprocessing focused primarily on standardizing country names to ensure consistency with the EV dataset. Existing regional records were removed and recalculated using the predefined country groupings to generate consistent aggregates for World, Africa, Asia Pacific, Europe, Central and South America, Middle East and Caspian, North America, and EU27. 
+
+\paragraph{Electricity Generation Dataset \cite{owid2025energy}} We convert \texttt{annual electricity} and \texttt{population} \texttt{statistics} from string to numeric types and standardized country names. Similarly, regional entries were also rebuilt by summing the values of constituent countries according to the predefined regional mapping. 
+
+Finally, the merged dataset was restricted to the period 2010–2024 to align with the historical coverage of the EV dataset. The resulting analytical dataset contains harmonized indicators for greenhouse gas emissions per capita, electricity generation, population, and urbanization across 62 entities (54 EV countries and 8 needed regions).
+
+\subsection{Schema description}
+EV dataset has 16436 rows and 9 columns. Meanwhile, merged dataset derived from external sources has 105 rows and 7 columns.
+
+\begin{table}[htpb]
+  \centering
+  \caption{Overview of ev2025.csv}
+  \label{tab:dataset}
+  % Changed p{8cm} to p{4.5cm} to fit standard two-column formats
+  \begin{tabular}{|l|l|p{3.8cm}|}
+    \hline
+    \textbf{Field} & \textbf{Type}   & \textbf{Description} \\
+    \hline
+    \texttt{region\_country}        & String     & Geographic scope of the data. \\
+    \hline
+    \texttt{category} & String   & Historical observations or future projection. \\
+    \hline
+    \texttt{parameter}  & String & Metric being measured. \\
+    \hline
+    \texttt{mode}     & String    & Represents the vehicle category/transport segment/charger data. \\
+    \hline
+    \texttt{powertrain}  & String & Classifies type partitions, indicators, and charging infrastructure. \\
+    \hline
+    \texttt{year}  & String & When data is collected. \\
+    \hline
+    \texttt{unit}  & String & Measurement unit of the data. \\
+    \hline
+    \texttt{value}  & Integer & Value of the metric. \\
+    \hline
+    \texttt{agg\_group}  & String & Country-level, continent-level, and global-level aggregation.\\
+    \hline
+    \texttt{is\_projection} & Boolean & year \(= 2030\) or not. \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[htpb]
+  \centering
+  \caption{Overview of merged\_output.csv}
+  \label{tab:dataset}
+  % Changed the first 'l' to 'p{3.5cm}' so the Field column wraps
+  \begin{tabular}{|p{2.8cm}|l|p{3.8cm}|}
+    \hline
+    \textbf{Field} & \textbf{Type}   & \textbf{Description} \\
+    \hline
+    \texttt{region\_country}        & String     & Geographic scope of the data. \\
+    \hline
+    \texttt{year}  & String & When data is collected. \\
+    \hline
+    \texttt{code} & String   & Isocode. \\
+    \hline
+    \texttt{emissions \_per\_capita}  & Int & Greenhouse gas emissions include carbon dioxide, methane and nitrous oxide from all sources measured in tonnes per person \\
+    \hline
+    \texttt{Population} & Int & \\
+    \hline
+    \texttt{electricity \_generation}  & String & Electricity in kWh \\
+    \hline
+  \end{tabular}
+\end{table}
+
+%--------------------------------------------------------------------------
 \section{Exploratory Data Analysis}
+Based on guiding questions, we uncovered key patterns in global EV adoption, charging infrastructure development, market composition, and future transition trajectories. The findings provide preliminary insights into the factors driving EV growth and establish the analytical foundation for the dashboard design.
 
+\subsection{Guiding questions}
+\begin{itemize}
+    \item \textbf{Adoption Trends.} 
+    
+    (a) Which countries saw the fastest EV adoption growth from 2010 to 2024?
+    
+    (b) What factors drive EV growth: charging infrastructure or other socioeconomic conditions?
+
+    (c) When did major EV markets transition from linear to exponential sales growth?
+
+    \item \textbf{Infrastructure \& Demand.} 
+
+    (a) Is charging infrastructure a leading or lagging indicator of EV adoption?
+
+    (b) Which countries have the lowest charger-to-EV availability?
+    
+    \item \textbf{Market Composition.} 
+
+    How does the BEV–PHEV market share differ across income groups?
+    
+    \item \textbf{Forecasting.} 
+
+    (a) Which countries are on track to exceed or 30\% EV stock share or behind the target by 2030?
+    
+    (b) EV stock share by 2030, and which are significantly behind target?
+
+    (c) If the top five EV markets sustain their 2022–2024 growth rates, how much oil demand could be displaced by 2030?
+\end{itemize}
+
+\subsection{EV Adoption Trends}
+Global EV adoption has accelerated substantially over the last decade. As shown in Figure~\ref{fig:country_on_the_road}, the global stock of electric car increased from 0.02 millions in 2010 to 58.1 million vehicles by 2024, while the projected figures under STEPS scenario exceeds 230 million vehicles by 2030. The trend suggests that EV adoption edged up during early stages of market development before growing rapidly around 2020–2021.
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/ev_cars_trend.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:country_on_the_roadt}
+\end{figure}
+
+Country-level analysis further highlights the concentration of EV adoption in a few leading markets. Figure~\ref{fig:country_on_the_road} shows that \China (34 million EVs in stock and 11.2 million annual sales) dominates the global EV market, far surpassing all other countries in both fleet size and sales volume. Its EV fleet accounts for approximately 59\% of global EV stock and is nearly five times larger than that of the second-largest national market, the US. Based on the bar race chart, EV market leadership witnessed a shift from the United States to China in 2016, with China remaining dominant through 2024. Norway briefly ranked among the top five markets during 2017–2019 before being overtaken by larger European and Chinese markets. While China, the United States, and Europe all experienced sustained growth, China's expansion was markedly faster and larger in scale. It accelerated after the 2017 NEV credit mandate and the 2020 charging infrastructure rollout.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/on-the-road-vehicles-by-country-and-region.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:country_on_the_road}
+\end{figure}
+
+\subsection{Infrastructure and Demand Dynamics}
+On a global scale, EV deployment and public charging have grown together - chargers slightly led in absolute terms during the 2010s. However, EV adoption began to outpace charging network expansion after 2020. Markets such as Korea and the Netherlands maintain relatively low EV-to-charger ratios, 2.0 and 5.2 repectively, due to low EV adoption. In contrast, countries such as the US exhibit substantially higher EV-to-charger ratios despite possessing large charging networks. Therefore, infrastructure alone cannot fully explain adoption patterns. Moreover, no Granger causality was detected between urbanization and EV adoption so we can only conclude that they co-move together. Policy support, urbanization, and other socioeconomic conditions are therefore likely to play an important complementary role. 
+
+\subsection{Market Composition}
+The composition of the global EV market is dominated by battery electric vehicles (BEVs).
+BEVs comprised 68\% of the global EV fleet in 2024, more than double the share of PHEVs. Their dominance is expected to increase by 2030, with projected stocks of 168 million BEVs and 62 million PHEVs worldwide.
+
+As shown in Figure~\ref{fig:powertrain_pct}, BEVs are predominantly deployed in 2-and-3 wheelers, while also maintaining a presence in passenger cars. In contrast, PHEVs are largely confined to the passenger-car segment, whereas FCEVs are distributed between passenger cars and heavy commercial vehicles.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/powertrain_pct.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:powertrain_pct}
+\end{figure}
+
+Differences in powertrain preferences are further illustrated in ~\ref{fig:top_market_pct}, which compares the BEV–PHEV distribution across leading EV markets. Countries such as China, Norway, Korea, and the United States exhibit a strong preference for BEVs, whereas Finland, Italy, and Spain maintain relatively larger PHEV shares. This variation suggests that charging infrastructure maturity and policy incentives may influence consumer preferences regarding EV technologies.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/top-10-ev-markets-proportion-2024.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:top_market_pct}
+\end{figure}
+
+\subsection{Socioeconomic \& Policy}
+Socioeconomic conditions and policy support play a crucial role in shaping EV adoption outcomes. EV adoption is strongly stratified by income~\ref{fig:income_adoption}. Median EV sales shares reach 24\% in high-income countries, compared with 7.4\% in upper-middle-income and 4.7\% in lower-middle-income economies. Within the high-income group, Nordic countries—particularly Norway (92\%) and Sweden (58\%)—lead by a wide margin, supported by extensive charging infrastructure and strong policy incentives. High-income countries also exhibit a positive relationship between EV sales share and charger availability. However, income level alone does not fully explain adoption performance. China stands out as an exception among upper-middle-income economies. With a 48\% EV sales share and 2,481 public chargers per million people, it performs more similarly to high-income leaders than to its income-group peers.
+
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/adoption-vs-infrastructure-density-2024.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:income_adoption}
+\end{figure}
+
+
+Additional evidence is provided in Figure ~\ref{fig:gas_transport}, which compares global transport emissions, fuel prices, and EV adoption trends. Per-capita \(CO_2\) emissions rose through 2019 before declining after 2020, while EV adoption accelerated. The 2022 fuel-price spike coincided with a marked increase in EV sales share, suggesting that higher fuel costs may have strengthened incentives for EV adoption. Although these relationships do not establish causality, they suggest that external economic pressures, combined with supportive policy measures, may accelerate consumer adoption of electric vehicles.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/gas-prices-transport-emissions-and-ev-adoption.png}
+    \caption{This is the caption that appears under the image.}
+    \label{fig:gas_transport}
+\end{figure}
+
+\subsection{Key EDA Insights}
+In conclusion, there are 4 key insights that we extract from Exploratory Data Analysis section. Firstly, EV adoption entered an accelerated growth phase after 2020, with China becoming the dominant global market in terms of fleet size and sales volume. Secondly, BEVs have become the dominant EV technology, although market composition varies according to infrastructure readiness and policy environments. Thirdly, EV adoption is strongly stratified by income, especially a positive correlation in high-income countries.
+
+%----------------------------------------------------------------------------------
 \section{Data Modelling}
 
 \section{Dashboard UI}
