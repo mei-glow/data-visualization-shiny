@@ -1567,6 +1567,14 @@ function mountChoropleth(el, filters) {
       }
     };
     el.on('plotly_click', el.__choroplethClickHandler);
+
+    // Double-click anywhere on the map clears the country focus → back to world view.
+    if (el.__choroplethDblHandler) el.removeListener('plotly_doubleclick', el.__choroplethDblHandler);
+    el.__choroplethDblHandler = () => {
+      window.dispatchEvent(new CustomEvent('dashboard-set-country', { detail: { country: 'ALL' } }));
+      return false; // suppress Plotly's default autorange double-click
+    };
+    el.on('plotly_doubleclick', el.__choroplethDblHandler);
   });
 }
 
