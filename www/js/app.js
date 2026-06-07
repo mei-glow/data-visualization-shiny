@@ -1214,7 +1214,7 @@ function TabML() {
       className: "ml-granger-title"
     }, "Granger result"), /*#__PURE__*/React.createElement("div", {
       className: "ml-granger-sub"
-    }, "China \xB7 urbanization \u2192 EV sales share \xB7 2010-2024"))), /*#__PURE__*/React.createElement("table", {
+    }, "China \xB7 urbanization \u2192 log(EV sales) \xB7 2010-2024"))), /*#__PURE__*/React.createElement("table", {
       className: "ml-granger-table"
     }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Lag"), /*#__PURE__*/React.createElement("th", null, "p-value"), /*#__PURE__*/React.createElement("th", null, "Result"))), /*#__PURE__*/React.createElement("tbody", null, [{
       lag: 1,

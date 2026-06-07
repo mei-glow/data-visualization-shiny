@@ -857,7 +857,7 @@ function TabML() {
               <div>
                 <div className="ml-granger-title">Granger result</div>
                 <div className="ml-granger-sub">
-                  China · urbanization → EV sales share · 2010-2024
+                  China · urbanization → log(EV sales) · 2010-2024
                 </div>
               </div>
             </div>
