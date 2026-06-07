@@ -463,9 +463,7 @@ function SectionHeader({
     className: "section-band"
   }, /*#__PURE__*/React.createElement("div", {
     className: "container has-filter"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "eyebrow"
-  }, eyebrow), /*#__PURE__*/React.createElement("h1", {
+  }, /*#__PURE__*/React.createElement("h1", {
     className: "section-title"
   }, title), /*#__PURE__*/React.createElement("div", {
     className: "section-sub"
@@ -975,7 +973,7 @@ function TabInfra() {
     className: "chart-callout-tag"
   }, "Takeaway"), /*#__PURE__*/React.createElement("div", {
     className: "chart-callout-body"
-  }, "No statistically detectable lead-lag between urbanization and EV adoption at \u03B1 = 0.05. Chickens AND eggs - they emerge together. The full ML evidence (cross-sectional OLS, model bake-off) lives in the ML / Causality tab."))), /*#__PURE__*/React.createElement("div", {
+  }, "No statistically detectable lead-lag between urbanization and EV adoption at \u03B1 = 0.05. Chickens AND eggs - they emerge together. The full ML evidence (pooled OLS and the EV adoption gap) lives in the ML / Causality tab."))), /*#__PURE__*/React.createElement("div", {
     className: "grid-2-wide-left"
   }, /*#__PURE__*/React.createElement(ChartCard, {
     title: "Charger-to-EV stress test, 2024",
@@ -1186,9 +1184,9 @@ function TabML() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "ML & CAUSALITY",
-    title: "What actually predicts EV adoption?",
-    sub: "Cross-sectional OLS, country scatter, and model comparison - paired with the time-series Granger evidence from the Infrastructure tab."
+    eyebrow: "ML & ASSOCIATION",
+    title: "What is associated with EV adoption?",
+    sub: "A pooled OLS describes EV sales from country fundamentals; the adoption gap shows which countries beat or fall short of that benchmark - paired with the time-series Granger evidence from the Infrastructure tab."
   }), /*#__PURE__*/React.createElement("div", {
     className: "container has-filter",
     style: {
@@ -1198,34 +1196,59 @@ function TabML() {
     className: "ml-intro"
   }, /*#__PURE__*/React.createElement("div", {
     className: "ml-intro-eyebrow"
-  }, "In one paragraph"), /*#__PURE__*/React.createElement("p", null, "We tested whether urbanization and other country features ", /*#__PURE__*/React.createElement("em", null, "cause"), " EV adoption in time (Granger test on China's series, in the Infrastructure tab) and how well they ", /*#__PURE__*/React.createElement("em", null, "describe"), " it (a pooled OLS panel on ", /*#__PURE__*/React.createElement("strong", null, "53 countries \xD7 15 years"), "). The pooled OLS finds ", /*#__PURE__*/React.createElement("strong", null, "all five predictors significant at p < 0.001"), " - electricity-generation capacity is the strongest positive driver, population the strongest negative one (smaller countries punch above their weight in EV sales). But on the China time-series, urbanization does ", /*#__PURE__*/React.createElement("strong", null, "not"), " Granger-cause EV adoption - they move together without one provably leading the other. On held-out data, ", /*#__PURE__*/React.createElement("strong", null, "Lasso narrowly tops the model bake-off"), " (R\xB2 = 0.49, MAE = 1.10 log-units \u2248 a factor-of-3 miss on the raw sales scale), with Ridge and plain OLS right behind it. Tree-based models trail.")), /*#__PURE__*/React.createElement("div", {
+  }, "In one paragraph"), /*#__PURE__*/React.createElement("p", null, "We fit a pooled OLS on ", /*#__PURE__*/React.createElement("strong", null, "651 country-year observations"), " (R\xB2 = 0.696, all p < 0.001) describing log(EV sales) from urbanization, population, electricity generation, and emissions. The model captures association, ", /*#__PURE__*/React.createElement("em", null, "not"), " causation. The interesting story is the residual - the ", /*#__PURE__*/React.createElement("strong", null, "adoption gap"), " between a country's actual EV sales and what the OLS expects. Countries above their expected level (China, UK, Portugal, Belgium, Denmark) likely benefit from policy, incentives, or charging ecosystems the model never sees; countries below it (Japan, Korea, Norway, South Africa) face barriers the fundamentals don't capture.")), /*#__PURE__*/React.createElement("div", {
     className: "section-divider"
   }, /*#__PURE__*/React.createElement("span", {
     className: "section-divider-label"
   }, "Pooled-panel analysis"), /*#__PURE__*/React.createElement("span", {
     className: "section-divider-meta"
-  }, "53 countries \xB7 2010-2024 \xB7 OLS on log(EV sales) & model bake-off")), /*#__PURE__*/React.createElement("div", {
+  }, "n = 651 country-year observations \xB7 R\xB2 = 0.696 \xB7 OLS on log(EV sales)")), /*#__PURE__*/React.createElement("div", {
     className: "grid-stack"
   }, /*#__PURE__*/React.createElement(ChartCard, {
-    title: "Urbanization rate vs EV sales share, 2024 (53 countries)",
-    sub: "Each dot = one country. Size \u221D EV stock volume. The dashed line is the OLS fit on all 53 countries; the dotted line is the fit with Norway excluded (showing the leverage effect). Source: scatter_urban_ev_share_2024.csv.",
-    mount: mountUrbanScatter,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "The cross-sectional fit is weak (R\xB2 \u2248 0.1 on this single year alone), but the China outlier shows urbanization alone doesn't determine volume - ", /*#__PURE__*/React.createElement("strong", null, "policy + scale do"), ".")
+    title: "EV adoption gap, 2024 \xB7 top 10 over- vs top 10 under-performers",
+    sub: /*#__PURE__*/React.createElement(React.Fragment, null, "Horizontal bars of the ", /*#__PURE__*/React.createElement("strong", null, "adoption gap"), " on the log(EV sales) scale. ", /*#__PURE__*/React.createElement("strong", null, "Positive"), " = actual EV sales above OLS-expected; ", /*#__PURE__*/React.createElement("strong", null, "negative"), " = below. ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--muted)'
+      }
+    }, "Source: adoption_gap_top_bottom_2024.csv.")),
+    mount: mountAdoptionGapBar,
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Some countries outperform their socioeconomic fundamentals in EV adoption. ", /*#__PURE__*/React.createElement("strong", null, "China, UK, Portugal, Belgium, and Denmark"), " have actual EV sales above OLS-expected levels, suggesting that additional factors such as policy support, incentives, charging infrastructure, or market strategy may play an important role beyond the variables captured in the dataset.")
   }), /*#__PURE__*/React.createElement(ChartCard, {
-    title: "OLS coefficients with 95% CI (panel of 53 countries \xD7 15 yrs)",
-    sub: /*#__PURE__*/React.createElement(React.Fragment, null, "Pooled regression on log(EV sales) as the target. Bars are 95% confidence intervals. ", /*#__PURE__*/React.createElement("strong", null, "All five predictors clear p < 0.001"), " on this large panel. ", /*#__PURE__*/React.createElement("span", {
+    title: "Actual vs expected EV sales, 2024 (log\u2013log)",
+    sub: /*#__PURE__*/React.createElement(React.Fragment, null, "Each dot = one country. The dashed diagonal is ", /*#__PURE__*/React.createElement("strong", null, "actual = expected"), "; points above it overperform the OLS benchmark, points below underperform. Highlighted: China, UK, Norway, Japan, South Africa. ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--muted)'
+      }
+    }, "Source: adoption_gap_2024.csv.")),
+    mount: mountActualVsExpected,
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "The gap between actual and expected EV sales shows that EV adoption cannot be fully explained by urbanization, population, electricity generation, and emissions alone. Markets above the diagonal likely reflect stronger policy or ecosystem effects, while markets below the line may face barriers not captured in the model.")
+  }), /*#__PURE__*/React.createElement(ChartCard, {
+    title: "OLS coefficients with 95% CI",
+    sub: /*#__PURE__*/React.createElement(React.Fragment, null, "Pooled regression on log(EV sales) as the target. Bars are 95% confidence intervals. ", /*#__PURE__*/React.createElement("strong", null, "n = 651 country-year observations \xB7 R\xB2 = 0.696 \xB7 all p < 0.001"), ". ", /*#__PURE__*/React.createElement("span", {
       style: {
         color: 'var(--muted)'
       }
     }, "Source: ols_final_results.csv.")),
     mount: mountOlsCoefs,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Top three drivers: ", /*#__PURE__*/React.createElement("strong", null, "electricity-generation capacity"), " (\u03B2 = +2.20), ", /*#__PURE__*/React.createElement("strong", null, "year"), " (\u03B2 = +0.48/yr), and ", /*#__PURE__*/React.createElement("strong", null, "urbanization"), " (\u03B2 = +0.027/pp). Population is significantly ", /*#__PURE__*/React.createElement("em", null, "negative"), " (\u03B2 = \u22121.28) - holding everything else constant, smaller countries sell more EVs per capita.")
-  }), /*#__PURE__*/React.createElement(ChartCard, {
-    title: "Model comparison \xB7 test R\xB2 and MAE (log-units)",
-    sub: "Held-out test scores. Lasso narrowly tops the table; tree-based models trail. MAE is in log-units of sales - a value of 1.1 corresponds to a factor-of-3 miss on the raw sales scale. Source: model_comparison_results.csv.",
-    mount: mountModelCompare,
-    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Lasso wins by ~0.6 percentage-points of R\xB2 over plain OLS - inside fold-to-fold noise. Tree-based models likely under-perform because the underlying relationships are largely monotonic on log scale, which suits linear hypotheses.")
+    callout: /*#__PURE__*/React.createElement(React.Fragment, null, "Strongest positive associations are ", /*#__PURE__*/React.createElement("strong", null, "electricity generation capacity"), " (\u03B2 = +2.20), ", /*#__PURE__*/React.createElement("strong", null, "year trend"), " (\u03B2 = +0.48/yr), and ", /*#__PURE__*/React.createElement("strong", null, "urbanization"), " (\u03B2 = +0.027/pp). Population is significantly ", /*#__PURE__*/React.createElement("em", null, "negative"), " after controls (\u03B2 = \u22121.28), which should be interpreted cautiously because population and electricity generation may overlap as market-scale indicators. Overall, the model supports ", /*#__PURE__*/React.createElement("strong", null, "association, not causation"), ".")
   })), /*#__PURE__*/React.createElement("div", {
+    className: "ml-intro",
+    style: {
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "ml-intro-eyebrow"
+  }, "Key result \xB7 2024 adoption gap"), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("strong", null, "Top overperformers:"), " Luxembourg, UK, Portugal, China, Belgium, Denmark, Costa Rica, Ireland, Uzbekistan, Indonesia."), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("strong", null, "Top underperformers:"), " Mexico, Sweden, Korea, Norway, Japan, Russia, Chile, Bulgaria, South Africa, Iceland."), /*#__PURE__*/React.createElement("p", {
+    style: {
+      marginBottom: 0
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, "China"), " actual EV sales 2024: 11.3M, expected from OLS: 2.87M, gap: ", /*#__PURE__*/React.createElement("strong", {
+    style: { color: 'var(--success, #06A77D)' }
+  }, "+8.43M"), ". \u00A0", /*#__PURE__*/React.createElement("strong", null, "UK"), " actual: 550K, expected: 120K, gap: ", /*#__PURE__*/React.createElement("strong", {
+    style: { color: 'var(--success, #06A77D)' }
+  }, "+430K"), ". \u00A0", /*#__PURE__*/React.createElement("strong", null, "Japan"), " actual: 103K, expected: 970K, gap: ", /*#__PURE__*/React.createElement("strong", {
+    style: { color: 'var(--danger, #D00000)' }
+  }, "\u2212867K"), ".")), /*#__PURE__*/React.createElement("div", {
     className: "section-divider",
     style: {
       marginTop: 28
@@ -1262,7 +1285,7 @@ function TabML() {
     className: "chip amber"
   }, "Country, development group, EV type, and year filters"), /*#__PURE__*/React.createElement("span", {
     className: "chip slate"
-  }, "OLS, Granger, and held-out model comparison")), /*#__PURE__*/React.createElement("p", null, "This dashboard combines IEA Global EV Outlook 2025 series with cleaned socioeconomic, energy, emissions, and fuel-price indicators. Country-level charts apply the selected country and development-group filters directly; global trend charts keep the world aggregate unless a comparable country series is available. Shares, stocks, chargers, and sales are shown in their original reported units, while bubble areas use square-root scaling so large markets remain readable without hiding smaller markets."), /*#__PURE__*/React.createElement("p", null, "The modeling section is descriptive, not causal proof. The pooled OLS uses a 53-country \xD7 15-year panel with log(EV sales) as the target, and the model comparison reports held-out R\xB2 and MAE in log units. The China Granger test is included as a time-series check: it asks whether past urbanization improves forecasts of EV adoption, and it does not find a statistically useful lead at the tested lags. Results should be read as associations and forecasting diagnostics, not policy counterfactuals.")))));
+  }, "OLS, adoption gap, and Granger cross-check")), /*#__PURE__*/React.createElement("p", null, "This dashboard combines IEA Global EV Outlook 2025 series with cleaned socioeconomic, energy, emissions, and fuel-price indicators. Country-level charts apply the selected country and development-group filters directly; global trend charts keep the world aggregate unless a comparable country series is available. Shares, stocks, chargers, and sales are shown in their original reported units, while bubble areas use square-root scaling so large markets remain readable without hiding smaller markets."), /*#__PURE__*/React.createElement("p", null, "The modeling section is descriptive, not causal proof. The pooled OLS uses 651 country-year observations with log(EV sales) as the target (R\xB2 = 0.696, all p < 0.001). The adoption gap is the residual between a country's actual EV sales and the OLS-expected value; a positive gap means a country sells more EVs than its fundamentals predict. The China Granger test is included as a time-series check: it asks whether past urbanization improves forecasts of EV adoption, and it does not find a statistically useful lead at the tested lags. Results should be read as associations, not policy counterfactuals.")))));
 }
 // =====================================================================
 // Footer
@@ -1332,7 +1355,7 @@ function MethodologyModal({
     className: "chip amber"
   }, "Country, development group, EV type, and year filters"), /*#__PURE__*/React.createElement("span", {
     className: "chip slate"
-  }, "OLS, Granger, and held-out model comparison")), /*#__PURE__*/React.createElement("p", null, "This dashboard combines IEA Global EV Outlook 2025 series with cleaned socioeconomic, energy, emissions, and fuel-price indicators. Country-level charts apply the selected country and development-group filters directly; global trend charts keep the world aggregate unless a comparable country series is available."), /*#__PURE__*/React.createElement("p", null, "Shares, stocks, chargers, and sales are shown in their original reported units. Bubble areas use square-root scaling so large markets remain readable without hiding smaller markets. Model outputs are descriptive: OLS, Granger tests, and held-out model comparison should be read as associations and forecasting diagnostics, not policy counterfactuals.")));
+  }, "OLS, adoption gap, and Granger cross-check")), /*#__PURE__*/React.createElement("p", null, "This dashboard combines IEA Global EV Outlook 2025 series with cleaned socioeconomic, energy, emissions, and fuel-price indicators. Country-level charts apply the selected country and development-group filters directly; global trend charts keep the world aggregate unless a comparable country series is available."), /*#__PURE__*/React.createElement("p", null, "Shares, stocks, chargers, and sales are shown in their original reported units. Bubble areas use square-root scaling so large markets remain readable without hiding smaller markets. Model outputs are descriptive: the OLS, EV adoption gap, and Granger tests should be read as associations, not policy counterfactuals.")));
 }
 
 // =====================================================================

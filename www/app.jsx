@@ -216,7 +216,6 @@ function SectionHeader({ eyebrow, title, sub }) {
   return (
     <div className="section-band">
       <div className="container has-filter">
-        <div className="eyebrow">{eyebrow}</div>
         <h1 className="section-title">{title}</h1>
         <div className="section-sub">{sub}</div>
       </div>
@@ -802,9 +801,9 @@ function TabML() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="ML & CAUSALITY"
-        title="What actually predicts EV adoption?"
-        sub="Cross-sectional OLS, country scatter, and model comparison - paired with the time-series Granger evidence from the Infrastructure tab."
+        eyebrow="ML & ASSOCIATION"
+        title="What is associated with EV adoption?"
+        sub="A pooled OLS describes EV sales from country fundamentals; the adoption gap shows which countries beat or fall short of that benchmark - paired with the time-series Granger evidence from the Infrastructure tab."
       />
       <div className="container has-filter" style={{ marginTop: 24 }}>
 
@@ -812,43 +811,51 @@ function TabML() {
         <div className="ml-intro">
           <div className="ml-intro-eyebrow">In one paragraph</div>
           <p>
-            We tested whether urbanization and other country features <em>cause</em> EV adoption in time (Granger test on China's series, in the Infrastructure tab) and how well they <em>describe</em> it (a pooled OLS panel on <strong>53 countries × 15 years</strong>).
-            The pooled OLS finds <strong>all five predictors significant at p &lt; 0.001</strong> - electricity-generation capacity is the strongest positive driver, population the strongest negative one (smaller countries punch above their weight in EV sales). But on the China time-series, urbanization does <strong>not</strong> Granger-cause EV adoption - they move together without one provably leading the other.
-            On held-out data, <strong>Lasso narrowly tops the model bake-off</strong> (R² = 0.49, MAE = 1.10 log-units ≈ a factor-of-3 miss on the raw sales scale), with Ridge and plain OLS right behind it. Tree-based models trail.
+            We fit a pooled OLS on <strong>651 country-year observations</strong> (R² = 0.696, all p &lt; 0.001) describing log(EV sales) from urbanization, population, electricity generation, and emissions. The model captures association, <em>not</em> causation. The interesting story is the residual - the <strong>adoption gap</strong> between a country's actual EV sales and what the OLS expects. Countries above their expected level (China, UK, Portugal, Belgium, Denmark) likely benefit from policy, incentives, or charging ecosystems the model never sees; countries below it (Japan, Korea, Norway, South Africa) face barriers the fundamentals don't capture.
           </p>
         </div>
 
-        {/* ====================== Cross-sectional section ====================== */}
+        {/* ====================== Pooled-panel + adoption gap section ====================== */}
         <div className="section-divider">
           <span className="section-divider-label">Pooled-panel analysis</span>
-          <span className="section-divider-meta">53 countries · 2010-2024 · OLS on log(EV sales) &amp; model bake-off</span>
+          <span className="section-divider-meta">n = 651 country-year observations · R² = 0.696 · OLS on log(EV sales)</span>
         </div>
 
         <div className="grid-stack">
 
-          {/* Scatter: urban% vs EV share (2024) */}
+          {/* Adoption gap bar chart */}
           <ChartCard
-            title="Urbanization rate vs EV sales share, 2024 (53 countries)"
-            sub="Each dot = one country. Size ∝ EV stock volume. The dashed line is the OLS fit on all 53 countries; the dotted line is the fit with Norway excluded (showing the leverage effect). Source: scatter_urban_ev_share_2024.csv."
-            mount={mountUrbanScatter}
-            callout={<>The cross-sectional fit is weak (R² ≈ 0.1 on this single year alone), but the China outlier shows urbanization alone doesn't determine volume - <strong>policy + scale do</strong>.</>}
+            title="EV adoption gap, 2024 · top 10 over- vs top 10 under-performers"
+            sub={<>Horizontal bars of the <strong>adoption gap</strong> on the log(EV sales) scale. <strong>Positive</strong> = actual EV sales above OLS-expected; <strong>negative</strong> = below. <span style={{ color: 'var(--muted)' }}>Source: adoption_gap_top_bottom_2024.csv.</span></>}
+            mount={mountAdoptionGapBar}
+            callout={<>Some countries outperform their socioeconomic fundamentals in EV adoption. <strong>China, UK, Portugal, Belgium, and Denmark</strong> have actual EV sales above OLS-expected levels, suggesting that additional factors such as policy support, incentives, charging infrastructure, or market strategy may play an important role beyond the variables captured in the dataset.</>}
+          />
+
+          {/* Actual vs expected scatter */}
+          <ChartCard
+            title="Actual vs expected EV sales, 2024 (log–log)"
+            sub={<>Each dot = one country. The dashed diagonal is <strong>actual = expected</strong>; points above it overperform the OLS benchmark, points below underperform. Highlighted: China, UK, Norway, Japan, South Africa. <span style={{ color: 'var(--muted)' }}>Source: adoption_gap_2024.csv.</span></>}
+            mount={mountActualVsExpected}
+            callout={<>The gap between actual and expected EV sales shows that EV adoption cannot be fully explained by urbanization, population, electricity generation, and emissions alone. Markets above the diagonal likely reflect stronger policy or ecosystem effects, while markets below the line may face barriers not captured in the model.</>}
           />
 
           {/* OLS coefficient plot */}
           <ChartCard
-            title="OLS coefficients with 95% CI (panel of 53 countries × 15 yrs)"
-            sub={<>Pooled regression on log(EV sales) as the target. Bars are 95% confidence intervals. <strong>All five predictors clear p &lt; 0.001</strong> on this large panel. <span style={{ color: 'var(--muted)' }}>Source: ols_final_results.csv.</span></>}
+            title="OLS coefficients with 95% CI"
+            sub={<>Pooled regression on log(EV sales) as the target. Bars are 95% confidence intervals. <strong>n = 651 country-year observations · R² = 0.696 · all p &lt; 0.001</strong>. <span style={{ color: 'var(--muted)' }}>Source: ols_final_results.csv.</span></>}
             mount={mountOlsCoefs}
-            callout={<>Top three drivers: <strong>electricity-generation capacity</strong> (β = +2.20), <strong>year</strong> (β = +0.48/yr), and <strong>urbanization</strong> (β = +0.027/pp). Population is significantly <em>negative</em> (β = −1.28) - holding everything else constant, smaller countries sell more EVs per capita.</>}
+            callout={<>Strongest positive associations are <strong>electricity generation capacity</strong> (β = +2.20), <strong>year trend</strong> (β = +0.48/yr), and <strong>urbanization</strong> (β = +0.027/pp). Population is significantly <em>negative</em> after controls (β = −1.28), which should be interpreted cautiously because population and electricity generation may overlap as market-scale indicators. Overall, the model supports <strong>association, not causation</strong>.</>}
           />
+        </div>
 
-          {/* Model comparison */}
-          <ChartCard
-            title="Model comparison · test R² and MAE (log-units)"
-            sub="Held-out test scores. Lasso narrowly tops the table; tree-based models trail. MAE is in log-units of sales - a value of 1.1 corresponds to a factor-of-3 miss on the raw sales scale. Source: model_comparison_results.csv."
-            mount={mountModelCompare}
-            callout={<>Lasso wins by ~0.6 percentage-points of R² over plain OLS - inside fold-to-fold noise. Tree-based models likely under-perform because the underlying relationships are largely monotonic on log scale, which suits linear hypotheses.</>}
-          />
+        {/* ====================== Key result note ====================== */}
+        <div className="ml-intro" style={{ marginTop: 20 }}>
+          <div className="ml-intro-eyebrow">Key result · 2024 adoption gap</div>
+          <p><strong>Top overperformers:</strong> Luxembourg, UK, Portugal, China, Belgium, Denmark, Costa Rica, Ireland, Uzbekistan, Indonesia.</p>
+          <p><strong>Top underperformers:</strong> Mexico, Sweden, Korea, Norway, Japan, Russia, Chile, Bulgaria, South Africa, Iceland.</p>
+          <p style={{ marginBottom: 0 }}>
+            <strong>China</strong> actual EV sales 2024: 11.3M, expected from OLS: 2.87M, gap: <strong style={{ color: 'var(--success, #06A77D)' }}>+8.43M</strong>.  <strong>UK</strong> actual: 550K, expected: 120K, gap: <strong style={{ color: 'var(--success, #06A77D)' }}>+430K</strong>.  <strong>Japan</strong> actual: 103K, expected: 970K, gap: <strong style={{ color: 'var(--danger, #D00000)' }}>−867K</strong>.
+          </p>
         </div>
 
         {/* ====================== Time-series section ====================== */}

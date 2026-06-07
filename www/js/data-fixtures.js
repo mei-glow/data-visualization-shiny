@@ -1282,11 +1282,94 @@ const OLS_COEFS = [{
   p: 1.6e-28
 }];
 const OLS_FIT = {
-  r2: 0.471,
-  adj_r2: 0.465,
-  n: 'panel · 53 countries × 15 years',
+  r2: 0.696,
+  n: 651,
+  n_label: 'n = 651 country-year observations',
   target: 'log(EV sales)'
 };
+
+// ---------- Adoption gap, 2024 (from adoption_gap_top_bottom_2024.csv) ----------
+// gap = actual EV sales vs OLS-expected. Positive = overperforms fundamentals; negative = underperforms.
+// adoption_gap_log is the gap on the log(EV sales) scale (the modeling target), used for the bar chart.
+const ADOPTION_GAP_TOP_BOTTOM = [
+  { country: 'Luxembourg',     group: 'Overperformers',  gapLog: 2.7195060180581425,  evSales: 16800.0,    expected: 1106.3086044932193,  share: 36.0,  urban: 94.84387029 },
+  { country: 'United Kingdom', group: 'Overperformers',  gapLog: 1.5206843593539467,  evSales: 550000.0,   expected: 120208.46190957763,  share: 28.0,  urban: 83.24295444 },
+  { country: 'Portugal',       group: 'Overperformers',  gapLog: 1.4933697863096658,  evSales: 70000.0,    expected: 15722.237935817855,  share: 33.0,  urban: 61.32819073 },
+  { country: 'China',          group: 'Overperformers',  gapLog: 1.3710271513543155,  evSales: 11300000.0, expected: 2868460.0397231984,  share: 48.0,  urban: 65.8946981  },
+  { country: 'Belgium',        group: 'Overperformers',  gapLog: 1.2816586140514605,  evSales: 197000.0,   expected: 54681.85321997273,   share: 43.0,  urban: 87.6126557  },
+  { country: 'Denmark',        group: 'Overperformers',  gapLog: 1.2183138620818266,  evSales: 96100.0,    expected: 28418.7935862495,    share: 56.0,  urban: 88.69605527 },
+  { country: 'Costa Rica',     group: 'Overperformers',  gapLog: 1.1382302112891072,  evSales: 11022.0,    expected: 3530.6097530452407,  share: 15.0,  urban: 79.31076724 },
+  { country: 'Ireland',        group: 'Overperformers',  gapLog: 1.1008495596303174,  evSales: 30000.0,    expected: 9976.98488704111,    share: 25.0,  urban: 64.34703793 },
+  { country: 'Uzbekistan',     group: 'Overperformers',  gapLog: 1.0981510256514966,  evSales: 22600.0,    expected: 7536.142470047644,   share: 5.0,   urban: 50.99866867 },
+  { country: 'Indonesia',      group: 'Overperformers',  gapLog: 1.0589056269331145,  evSales: 49150.0,    expected: 17046.295429870024,  share: 7.3,   urban: 58.75096354 },
+  { country: 'Mexico',         group: 'Underperformers', gapLog: -1.134846704238143,  evSales: 27100.0,    expected: 84301.98990461408,   share: 2.2,   urban: 79.7538806  },
+  { country: 'Sweden',         group: 'Underperformers', gapLog: -1.2041053414708642, evSales: 157000.0,   expected: 523405.0328109966,   share: 58.0,  urban: 88.85597483 },
+  { country: 'Korea',          group: 'Underperformers', gapLog: -1.4508435494744276, evSales: 127900.0,   expected: 545715.7545813076,   share: 9.2,   urban: 81.16825285 },
+  { country: 'Norway',         group: 'Underperformers', gapLog: -1.6195334086891489, evSales: 113500.0,   expected: 573262.2619519104,   share: 92.0,  urban: 83.32937379 },
+  { country: 'Japan',          group: 'Underperformers', gapLog: -2.242678889165072,  evSales: 103000.0,   expected: 970116.8763120743,   share: 2.8,   urban: 92.1901718  },
+  { country: 'Russia',         group: 'Underperformers', gapLog: -2.2457514614949634, evSales: 32600.0,    expected: 307997.3495156479,   share: 2.9,   urban: 75.11191362 },
+  { country: 'Chile',          group: 'Underperformers', gapLog: -2.302633941898481,  evSales: 5600.0,     expected: 56011.73609396444,   share: 2.1,   urban: 88.99509085 },
+  { country: 'Bulgaria',       group: 'Underperformers', gapLog: -2.3544106320455223, evSales: 2170.0,     expected: 22863.79800763309,   share: 5.0,   urban: 73.94993569 },
+  { country: 'South Africa',   group: 'Underperformers', gapLog: -3.171768298867426,  evSales: 1940.0,     expected: 46291.113094663655,  share: 0.61, urban: 63.69179849 },
+  { country: 'Iceland',        group: 'Underperformers', gapLog: -3.799534268282775,  evSales: 4300.0,     expected: 192169.27386935623,  share: 42.0,  urban: 94.18190399 }
+];
+
+// Full 2024 set (from adoption_gap_2024.csv) for the actual-vs-expected scatter.
+// expected/actual on the raw EV-sales scale; gapLog = sign of over/under-performance.
+const ADOPTION_GAP_2024 = [
+  { country: 'Luxembourg',     evSales: 16800.0,    expected: 1106.3086044932193,  gapLog: 2.7195060180581425 },
+  { country: 'United Kingdom', evSales: 550000.0,   expected: 120208.46190957763,  gapLog: 1.5206843593539467 },
+  { country: 'Portugal',       evSales: 70000.0,    expected: 15722.237935817855,  gapLog: 1.4933697863096658 },
+  { country: 'China',          evSales: 11300000.0, expected: 2868460.0397231984,  gapLog: 1.3710271513543155 },
+  { country: 'Belgium',        evSales: 197000.0,   expected: 54681.85321997273,   gapLog: 1.2816586140514605 },
+  { country: 'Denmark',        evSales: 96100.0,    expected: 28418.7935862495,    gapLog: 1.2183138620818266 },
+  { country: 'Costa Rica',     evSales: 11022.0,    expected: 3530.6097530452407,  gapLog: 1.1382302112891072 },
+  { country: 'Ireland',        evSales: 30000.0,    expected: 9976.98488704111,    gapLog: 1.1008495596303174 },
+  { country: 'Uzbekistan',     evSales: 22600.0,    expected: 7536.142470047644,   gapLog: 1.0981510256514966 },
+  { country: 'Indonesia',      evSales: 49150.0,    expected: 17046.295429870024,  gapLog: 1.0589056269331145 },
+  { country: 'Thailand',       evSales: 80400.0,    expected: 28272.958674606394,  gapLog: 1.0450854210788183 },
+  { country: 'Viet Nam',       evSales: 69084.0,    expected: 25841.04815094145,   gapLog: 0.9833346919280306 },
+  { country: 'Germany',        evSales: 570000.0,   expected: 256134.5168536585,   gapLog: 0.799931448086868 },
+  { country: 'Lithuania',      evSales: 3500.0,     expected: 1749.4716115304857,  gapLog: 0.6931633980404985 },
+  { country: 'Netherlands',    evSales: 182000.0,   expected: 119053.05852223319,  gapLog: 0.4244345183104645 },
+  { country: 'India',          evSales: 92095.0,    expected: 65105.63372627846,   gapLog: 0.34680506668461497 },
+  { country: 'Italy',          evSales: 118000.0,   expected: 86666.32683705314,   gapLog: 0.3086161393370084 },
+  { country: 'Romania',        evSales: 9800.0,     expected: 7505.61171563625,    gapLog: 0.2667002270075809 },
+  { country: 'Austria',        evSales: 62000.0,    expected: 57535.25007918654,   gapLog: 0.07473532862560006 },
+  { country: 'Colombia',       evSales: 13100.0,    expected: 12801.792022717698,  gapLog: 0.02302528925732794 },
+  { country: 'Australia',      evSales: 112000.0,   expected: 109531.24467251604,  gapLog: 0.022288822023323718 },
+  { country: 'Hungary',        evSales: 14300.0,    expected: 14120.890324115118,  gapLog: 0.012603366140700345 },
+  { country: 'Latvia',         evSales: 2100.0,     expected: 2252.7632612697676,  gapLog: -0.07018795774607156 },
+  { country: 'Poland',         evSales: 32000.0,    expected: 35788.93297044466,   gapLog: -0.11189949960763279 },
+  { country: 'Brazil',         evSales: 125000.0,   expected: 145185.95583569503,  gapLog: -0.14970052524259359 },
+  { country: 'France',         evSales: 450000.0,   expected: 524775.2527154583,   gapLog: -0.15372218146084826 },
+  { country: 'Estonia',        evSales: 2600.0,     expected: 3111.9181986101926,  gapLog: -0.17966462729793964 },
+  { country: 'Turkiye',        evSales: 105700.0,   expected: 131310.6748108749,   gapLog: -0.21695934085331636 },
+  { country: 'Spain',          evSales: 128000.0,   expected: 172054.94128118013,  gapLog: -0.295781587552149 },
+  { country: 'Croatia',        evSales: 3200.0,     expected: 4393.035971574311,   gapLog: -0.3167848994624194 },
+  { country: 'USA',            evSales: 1520000.0,  expected: 2199055.318906478,   gapLog: -0.369317329636333 },
+  { country: 'Israel',         evSales: 76400.0,    expected: 110686.63789016395,  gapLog: -0.37071637621116516 },
+  { country: 'Cyprus',         evSales: 1860.0,     expected: 2829.904076343453,   gapLog: -0.4194821445834993 },
+  { country: 'Canada',         evSales: 252000.0,   expected: 430390.6221127346,   gapLog: -0.5352624875491507 },
+  { country: 'Switzerland',    evSales: 67000.0,    expected: 115149.96407602569,  gapLog: -0.541536453928261 },
+  { country: 'Finland',        evSales: 37000.0,    expected: 69499.4572374379,    gapLog: -0.6303883921990181 },
+  { country: 'Slovenia',       evSales: 4300.0,     expected: 8712.345154773437,   gapLog: -0.7060082224324216 },
+  { country: 'Greece',         evSales: 17000.0,    expected: 38126.179745283065,  gapLog: -0.8076552410844027 },
+  { country: 'Malaysia',       evSales: 27300.0,    expected: 70056.09993265667,   gapLog: -0.942387291303044 },
+  { country: 'New Zealand',    evSales: 9700.0,     expected: 25209.15956209203,   gapLog: -0.9550180975180673 },
+  { country: 'Czech Republic', evSales: 15800.0,    expected: 42021.013280095154,  gapLog: -0.9781203775246485 },
+  { country: 'Slovakia',       evSales: 4400.0,     expected: 11926.395085558024,  gapLog: -0.9970060745277447 },
+  { country: 'Mexico',         evSales: 27100.0,    expected: 84301.98990461408,   gapLog: -1.134846704238143 },
+  { country: 'Sweden',         evSales: 157000.0,   expected: 523405.0328109966,   gapLog: -1.2041053414708642 },
+  { country: 'Korea',          evSales: 127900.0,   expected: 545715.7545813076,   gapLog: -1.4508435494744276 },
+  { country: 'Norway',         evSales: 113500.0,   expected: 573262.2619519104,   gapLog: -1.6195334086891489 },
+  { country: 'Japan',          evSales: 103000.0,   expected: 970116.8763120743,   gapLog: -2.242678889165072 },
+  { country: 'Russia',         evSales: 32600.0,    expected: 307997.3495156479,   gapLog: -2.2457514614949634 },
+  { country: 'Chile',          evSales: 5600.0,     expected: 56011.73609396444,   gapLog: -2.302633941898481 },
+  { country: 'Bulgaria',       evSales: 2170.0,     expected: 22863.79800763309,   gapLog: -2.3544106320455223 },
+  { country: 'South Africa',   evSales: 1940.0,     expected: 46291.113094663655,  gapLog: -3.171768298867426 },
+  { country: 'Iceland',        evSales: 4300.0,     expected: 192169.27386935623,  gapLog: -3.799534268282775 }
+];
 
 // ---------- Granger causality (China, urbanization -> EV sales share) - real values from granger_china_results.csv ----------
 const GRANGER = [{
@@ -1399,5 +1482,7 @@ Object.assign(window, {
   OLS_FIT,
   GRANGER,
   MODEL_COMPARE,
+  ADOPTION_GAP_TOP_BOTTOM,
+  ADOPTION_GAP_2024,
   ANOMALY_YEARS
 });

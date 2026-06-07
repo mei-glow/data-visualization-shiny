@@ -1688,74 +1688,66 @@ function mountGasEmissions(el, filters) {
 // ---------------------------------------------------------------------
 // ML.A - Urbanization vs EV sales share scatter (2024)
 // ---------------------------------------------------------------------
-function mountUrbanScatter(el, filters) {
-  const focus = (filters && filters.country && filters.country !== 'ALL') ? filters.country : null;
-  const regions = ['Asia','Europe','America','Oceania'];
-  const BASE_LABEL = new Set(['China','Norway','USA','Netherlands','Germany','India','Japan','Indonesia','Brazil','Korea','Sweden','Denmark']);
-  const ALWAYS_LABEL = focus ? new Set([...BASE_LABEL, focus]) : BASE_LABEL;
-  const traces = regions.map(reg => {
-    const rows = URBAN_VS_EV_2024.filter(r => r.region === reg && fCountryKeep(filters, r.country));
+// ---------------------------------------------------------------------
+// ML.A - EV adoption-gap bar chart (top-10 over- vs top-10 under-performers, 2024)
+// Horizontal bars; x = adoption_gap_log, y = country, colored by group.
+// Positive gap = actual EV sales above OLS-expected; negative = below.
+// ---------------------------------------------------------------------
+function mountAdoptionGapBar(el, filters) {
+  const OVER = PALETTE.success;   // overperformers
+  const UNDER = PALETTE.danger;   // underperformers
+  // Keep only rows matching the active country filter (if any). Sort ascending so the
+  // most negative gap sits at the bottom and the most positive at the top.
+  const rows = ADOPTION_GAP_TOP_BOTTOM
+    .filter(r => fCountryKeep(filters, r.country))
+    .slice()
+    .sort((a, b) => a.gapLog - b.gapLog);
+
+  if (!rows.length) {
+    Plotly.newPlot(el, [], baseLayout({
+      height: 560,
+      annotations: [{ xref: 'paper', yref: 'paper', x: 0.5, y: 0.5, showarrow: false,
+        text: 'No over/under-performers match the selected country filter.',
+        font: { size: 13, color: '#64748B', family: FONT_FAMILY } }],
+    }), PLOT_CONFIG);
+    return;
+  }
+
+  const mkTrace = (group, color) => {
+    const g = rows.filter(r => r.group === group);
     return {
-      type: 'scatter', mode: 'markers+text',
-      name: reg,
-      x: rows.map(r => r.urban),
-      y: rows.map(r => r.share),
-      text: rows.map(r => ALWAYS_LABEL.has(r.country) ? r.country : ''),
-      textposition: 'top center',
-      textfont: { color: '#475569', size: 11, family: FONT_FAMILY },
-      customdata: rows.map(r => [r.country, r.stock_M]),
+      type: 'bar', orientation: 'h', name: group,
+      y: g.map(r => r.country),
+      x: g.map(r => r.gapLog),
       marker: {
-        size: rows.map(r => Math.max(Math.sqrt(r.stock_M) * 28 + 12, 12)),
-        sizemode: 'diameter',
-        color: CONTINENT_COLORS[reg],
-        opacity: 0.72,
-        line: {
-          color: rows.map(r => fCountryMatches(filters, r.country) ? '#0F172A' : '#fff'),
-          width: rows.map(r => fCountryMatches(filters, r.country) ? 2.5 : 1.5),
-        },
+        color: color, opacity: 0.9,
+        line: { color: g.map(r => fCountryMatches(filters, r.country) ? '#0F172A' : color),
+                width: g.map(r => fCountryMatches(filters, r.country) ? 2 : 0) },
       },
-      hovertemplate: '<b>%{customdata[0]}</b><br>Urban: %{x:.1f}%<br>EV sales share: %{y:.1f}%<br>Stock: %{customdata[1]:.2f} M<extra></extra>',
+      customdata: g.map(r => [r.evSales, r.expected]),
+      hovertemplate: '<b>%{y}</b><br>Adoption gap (log): %{x:+.2f}'
+        + '<br>Actual EV sales: %{customdata[0]:,.0f}'
+        + '<br>OLS-expected: %{customdata[1]:,.0f}<extra>' + group + '</extra>',
     };
-  });
+  };
 
-  // OLS regression line on ALL countries: y ≈ -22 + 0.55x
-  const xLine = [30, 100];
-  if (!focus && (!filters || !filters.income || filters.income === 'ALL')) traces.push({
-    type: 'scatter', mode: 'lines', name: 'OLS fit (all 28)',
-    x: xLine, y: xLine.map(x => Math.max(0, -22 + 0.55 * x)),
-    line: { color: '#475569', dash: 'dash', width: 2 },
-    hoverinfo: 'skip',
-  });
-  // Robust fit excluding Norway (slope drops noticeably without the leverage point)
-  if (!focus && (!filters || !filters.income || filters.income === 'ALL')) traces.push({
-    type: 'scatter', mode: 'lines', name: 'OLS fit (excl. Norway)',
-    x: xLine, y: xLine.map(x => Math.max(0, -14 + 0.42 * x)),
-    line: { color: '#94A3B8', dash: 'dot', width: 1.5 },
-    hoverinfo: 'skip',
-  });
-
-  const cn = URBAN_VS_EV_2024.find(r => r.country === 'China' && fCountryKeep(filters, r.country));
-  const nor = URBAN_VS_EV_2024.find(r => r.country === 'Norway' && fCountryKeep(filters, r.country));
-  const annotations = [];
-  if (cn) annotations.push({ x: cn.urban, y: cn.share, text: '<b>CHINA</b> - outsized volume despite mid-tier urban %',
-      font: { size: 12, color: '#D62828', family: FONT_MONO },
-      ax: 70, ay: -10, arrowhead: 2, arrowcolor: '#D62828', arrowwidth: 1.2,
-      bgcolor: 'rgba(255,255,255,0.96)', bordercolor: '#D62828', borderwidth: 1.5, borderpad: 5 });
-  if (nor) annotations.push({ x: nor.urban, y: nor.share, text: '<b>Norway</b> - high-leverage outlier',
-      font: { size: 11, color: '#0077B6', family: FONT_MONO },
-      ax: -40, ay: 28, arrowhead: 2, arrowcolor: '#0077B6', arrowwidth: 1,
-      bgcolor: 'rgba(255,255,255,0.96)', bordercolor: '#0077B6', borderwidth: 1.2, borderpad: 4, xanchor: 'right' });
+  const traces = [mkTrace('Underperformers', UNDER), mkTrace('Overperformers', OVER)];
 
   const layout = baseLayout({
-    height: 520,
-    margin: { l: 64, r: 28, t: 36, b: 100 },
-    xaxis: { title: 'Urbanization (% of population)  -  no country < 30%', range: [30, 100], ticksuffix: '%', gridcolor: '#EEF2F6' },
-    yaxis: { title: 'EV sales share (%)', range: [0, 95], ticksuffix: '%', gridcolor: '#EEF2F6' },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.24, font: { size: 12 }, itemsizing: 'constant' },
-    annotations,
+    height: 560,
+    margin: { l: 130, r: 40, t: 30, b: 64 },
+    barmode: 'overlay',
+    xaxis: {
+      title: { text: 'Adoption gap — log(actual EV sales) − log(expected)   ·   right = overperforms, left = underperforms', standoff: 12 },
+      zeroline: true, zerolinecolor: '#475569', zerolinewidth: 2, gridcolor: '#EEF2F6',
+    },
+    yaxis: { automargin: true, tickfont: { size: 12, color: '#0F172A' } },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.16, font: { size: 12 } },
+    shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: 0, x1: 0, y0: 0, y1: 1,
+               line: { color: '#475569', width: 2 } }],
   });
 
-  Plotly.newPlot(el, traces.filter(t => t.x.length), layout, PLOT_CONFIG);
+  Plotly.newPlot(el, traces, layout, PLOT_CONFIG);
 }
 
 // ---------------------------------------------------------------------
@@ -1893,7 +1885,7 @@ function mountOlsCoefs(el) {
         text: '<b>Raw OLS coefficients</b>  ·  target = log(EV sales) so coefficients are log-units of sales per unit of predictor.',
         showarrow: false, font: { size: 12, color: '#475569' } },
       { xref: 'paper', yref: 'paper', x: 0, y: 1.08, xanchor: 'left',
-        text: '<b>n = panel · 53 countries × 15 yrs  ·  R² = 0.47  ·  all p < 0.001</b>',
+        text: '<b>n = 651 country-year observations  ·  R² = 0.696  ·  all p < 0.001</b>',
         showarrow: false, font: { size: 11, color: '#0F172A', family: FONT_MONO },
         bgcolor: '#F1F5F9', borderpad: 4 },
       { xref: 'x', yref: 'paper', x: 0, y: -0.04, xanchor: 'center',
@@ -1906,75 +1898,70 @@ function mountOlsCoefs(el) {
 }
 
 // ---------------------------------------------------------------------
-// ML.D - Model comparison bar chart (test R²)
+// ML.D - Actual vs expected EV sales scatter (log-log, 2024)
+// Each dot = one country. Diagonal y = x is the "actual = expected" line.
+// Above the line = overperformer; below = underperformer.
 // ---------------------------------------------------------------------
-function mountModelCompare(el) {
-  // Real model_comparison_results values - Lasso is the top R2, Gradient Boosting at the bottom.
-  // Metric note: MAE/RMSE are in LOG units of sales (since the target is log(ev_sales)).
-  // An MAE of 1.1 in log units ≈ a factor of e^1.1 ≈ 3.0 in the original sales scale.
-  const SHORT = { 'Linear Regression':'Linear', 'Ridge':'Ridge', 'Lasso':'Lasso',
-                  'Random Forest':'Rand. Forest', 'Gradient Boosting':'Grad. Boost' };
-  // Plausible CV-fold std-dev for small panel (5-fold). We don't have raw fold data, so this is
-  // an indicative range so readers don't over-interpret the small R2 gaps.
-  const SD = { 'Lasso':0.025, 'Ridge':0.027, 'Linear Regression':0.028, 'Random Forest':0.040, 'Gradient Boosting':0.045 };
+function mountActualVsExpected(el, filters) {
+  const HIGHLIGHT = new Set(['China', 'United Kingdom', 'Norway', 'Japan', 'South Africa']);
+  const rows = ADOPTION_GAP_2024.filter(r => fCountryKeep(filters, r.country));
 
-  const labels = MODEL_COMPARE.map(m => SHORT[m.model] || m.model);
-  const r2 = MODEL_COMPARE.map(m => m.r2);
-  const r2err = MODEL_COMPARE.map(m => SD[m.model] || 0.03);
-  const mae = MODEL_COMPARE.map(m => m.mae);
-  const colors = MODEL_COMPARE.map((m, i) => i < 3 ? PALETTE.primary : '#94A3B8');
+  // Plot on log10 axes so the full range (thousands → millions) is readable.
+  const log10 = v => Math.log10(Math.max(v, 1));
+  const over = rows.filter(r => r.gapLog >= 0);
+  const under = rows.filter(r => r.gapLog < 0);
 
-  const traceR2 = {
-    type: 'bar', name: 'Test R²',
-    x: labels, y: r2,
-    marker: { color: colors },
-    error_y: { type: 'data', array: r2err, color: '#475569', thickness: 1.2, width: 6 },
-    text: r2.map(v => v.toFixed(3)),
-    textposition: 'none', cliponaxis: false,
-    textfont: { size: 13, color: '#0F172A', family: FONT_MONO },
-    xaxis: 'x', yaxis: 'y',
-    hovertemplate: '<b>%{x}</b><br>R²: %{y:.3f} ± SD<extra></extra>',
+  const mkTrace = (g, name, color) => ({
+    type: 'scatter', mode: 'markers+text', name,
+    x: g.map(r => log10(r.expected)),
+    y: g.map(r => log10(r.evSales)),
+    text: g.map(r => HIGHLIGHT.has(r.country) ? (r.country === 'United Kingdom' ? 'UK' : r.country) : ''),
+    textposition: 'top center',
+    textfont: { color: '#0F172A', size: 12, family: FONT_MONO },
+    customdata: g.map(r => [r.country, r.evSales, r.expected]),
+    marker: {
+      size: g.map(r => HIGHLIGHT.has(r.country) ? 16 : 10),
+      color: color, opacity: 0.78,
+      line: { color: g.map(r => HIGHLIGHT.has(r.country) ? '#0F172A' : '#fff'),
+              width: g.map(r => HIGHLIGHT.has(r.country) ? 2.2 : 1) },
+    },
+    hovertemplate: '<b>%{customdata[0]}</b><br>Actual EV sales: %{customdata[1]:,.0f}'
+      + '<br>OLS-expected: %{customdata[2]:,.0f}<extra>' + name + '</extra>',
+  });
+
+  // Diagonal reference line: actual = expected.
+  const allX = rows.map(r => log10(r.expected)).concat(rows.map(r => log10(r.evSales)));
+  const lo = Math.min(...allX) - 0.3, hi = Math.max(...allX) + 0.3;
+  const diag = {
+    type: 'scatter', mode: 'lines', name: 'actual = expected',
+    x: [lo, hi], y: [lo, hi],
+    line: { color: '#475569', dash: 'dash', width: 2 },
+    hoverinfo: 'skip',
   };
-  const traceMae = {
-    type: 'bar', name: 'MAE (log units)',
-    x: labels, y: mae,
-    marker: { color: MODEL_COMPARE.map((m, i) => i < 3 ? '#E76F51' : '#CBD5E1') },
-    text: mae.map(v => v.toFixed(3)),
-    textposition: 'outside', cliponaxis: false,
-    textfont: { size: 13, color: '#0F172A', family: FONT_MONO },
-    xaxis: 'x2', yaxis: 'y2',
-    hovertemplate: '<b>%{x}</b><br>MAE (log units): %{y:.3f}<br>≈ factor of e^%{y:.2f} on the raw sales scale<extra></extra>',
-  };
 
+  const traces = [
+    diag,
+    mkTrace(over, 'Overperformers', PALETTE.success),
+    mkTrace(under, 'Underperformers', PALETTE.danger),
+  ];
+
+  // Extra headroom on the y-axis so the top-right point's text label (China) isn't clipped.
+  const yHi = hi + 0.35;
   const layout = baseLayout({
-    height: 460,
-    margin: { l: 70, r: 30, t: 108, b: 90 },
-    grid: { rows: 1, columns: 2, pattern: 'independent' },
-    xaxis:  { domain: [0, 0.46], tickangle: -20, tickfont: { size: 12 }, anchor: 'y' },
-    yaxis:  { title: 'Test R² (±1 SD across folds, indicative)', range: [0, 0.84], gridcolor: '#EEF2F6', anchor: 'x' },
-    xaxis2: { domain: [0.54, 1], tickangle: -20, tickfont: { size: 12 }, anchor: 'y2' },
-    yaxis2: { title: 'MAE on log(EV sales)  -  lower is better', range: [0, 1.5], gridcolor: '#EEF2F6', anchor: 'x2' },
-    showlegend: false,
+    height: 540,
+    margin: { l: 72, r: 36, t: 40, b: 96 },
+    xaxis: { title: { text: 'Expected EV sales (OLS) — log₁₀ scale', standoff: 10 }, range: [lo, hi], gridcolor: '#EEF2F6' },
+    yaxis: { title: { text: 'Actual EV sales — log₁₀ scale', standoff: 10 }, range: [lo, yHi], gridcolor: '#EEF2F6' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2, font: { size: 12 }, itemsizing: 'constant' },
     annotations: [
-      ...labels.map((lab, i) => ({
-        xref: 'x', yref: 'y', x: lab, y: r2[i] + 0.07,
-        text: r2[i].toFixed(3), showarrow: false,
-        font: { size: 12, color: '#0F172A', family: FONT_MONO },
-      })),
-      { xref: 'paper', yref: 'paper', x: 0.23, y: 1.16, xanchor: 'center',
-        text: '<b>Goodness of fit</b>  ·  higher is better', showarrow: false,
-        font: { size: 12, color: '#0F172A' } },
-      { xref: 'paper', yref: 'paper', x: 0.77, y: 1.16, xanchor: 'center',
-        text: '<b>Error magnitude</b>  ·  log-units of sales', showarrow: false,
-        font: { size: 12, color: '#0F172A' } },
-      // Helper note explaining what log MAE means in plain English
-      { xref: 'paper', yref: 'paper', x: 1.0, y: 1.06, xanchor: 'right',
-        text: 'MAE 1.1 in log-units ≈ a factor-of-3 miss on the raw sales scale.',
-        showarrow: false, font: { size: 11, color: '#64748B', family: FONT_FAMILY } },
+      { xref: 'paper', yref: 'paper', x: 0.02, y: 0.98, xanchor: 'left', showarrow: false,
+        text: '▲ above diagonal = overperformers', font: { size: 11, color: PALETTE.success, family: FONT_MONO } },
+      { xref: 'paper', yref: 'paper', x: 0.98, y: 0.06, xanchor: 'right', showarrow: false,
+        text: '▼ below diagonal = underperformers', font: { size: 11, color: PALETTE.danger, family: FONT_MONO } },
     ],
   });
 
-  Plotly.newPlot(el, [traceR2, traceMae], layout, PLOT_CONFIG);
+  Plotly.newPlot(el, traces.filter(t => !t.x || t.x.length), layout, PLOT_CONFIG);
 }
 
 // Expose
@@ -1985,5 +1972,5 @@ Object.assign(window, {
   mountTop20Mix, mountTurnoverGap,
   mountSocio, mountForecast,
   mountChoropleth, mountAdoptionUrban, mountGasEmissions,
-  mountUrbanScatter, mountChinaDual, mountOlsCoefs, mountModelCompare,
+  mountAdoptionGapBar, mountChinaDual, mountOlsCoefs, mountActualVsExpected,
 });
