@@ -901,7 +901,7 @@ function Footer({ onMethodology }) {
           <div>
             <h5>Team</h5>
             <div className="credits-list">
-              <div><b>Pham Quynh Trang</b> · Lead, UI / UX</div>
+              <div><b>Pham Quynh Trang</b> · Lead, UI / UX, Dashboard UI</div>
               <div><b>Nguyen Thi Bao Tien</b> · Data pipeline</div>
               <div><b>Tran Phuong Mai</b> · Dashboard build</div>
               <div><b>Nguyen Khanh Ngoc</b> · ML &amp; forecasting</div>
