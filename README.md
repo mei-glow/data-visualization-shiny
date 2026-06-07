@@ -91,10 +91,9 @@ views.
 
 ### External contextual data
 
-- Population and electricity generation
+- [Population and electricity generation](https://github.com/owid/energy-data/)
 - [World Bank urban population share](https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS)
-- Greenhouse-gas emissions per capita
-- Gas-price indicators used in the socioeconomic comparison
+- [Greenhouse-gas emissions per capita](https://ourworldindata.org/grapher/per-capita-ghg-emissions)
 
 ### Processed outputs
 
