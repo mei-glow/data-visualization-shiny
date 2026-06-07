@@ -1204,7 +1204,37 @@ function TabML() {
     sub: "Both lines rise, but the EV sales share curve hockey-sticks around 2020 while urbanization climbs near-linearly. The two are co-moving, not synchronously. The Infrastructure tab's Granger test (no detectable lead at any lag) confirms this visual reading.",
     mount: mountChinaDual,
     callout: /*#__PURE__*/React.createElement(React.Fragment, null, "China's urban share went from 49% \u2192 67%; its EV sales share went from ", /*#__PURE__*/React.createElement("strong", null, "0.01% \u2192 48%"), ". Adoption accelerated ", /*#__PURE__*/React.createElement("em", null, "after"), " urbanization had already plateaued in growth rate.")
-  })), /*#__PURE__*/React.createElement("details", {
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "ml-granger-box"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "ml-granger-head"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "ml-granger-tag"
+    }, "ML"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      className: "ml-granger-title"
+    }, "Granger result"), /*#__PURE__*/React.createElement("div", {
+      className: "ml-granger-sub"
+    }, "China \xB7 urbanization \u2192 EV sales share \xB7 2010-2024"))), /*#__PURE__*/React.createElement("table", {
+      className: "ml-granger-table"
+    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Lag"), /*#__PURE__*/React.createElement("th", null, "p-value"), /*#__PURE__*/React.createElement("th", null, "Result"))), /*#__PURE__*/React.createElement("tbody", null, [{
+      lag: 1,
+      p: 0.334
+    }, {
+      lag: 2,
+      p: 0.348
+    }, {
+      lag: 3,
+      p: 0.391
+    }, {
+      lag: 4,
+      p: 0.499
+    }].map(row => /*#__PURE__*/React.createElement("tr", {
+      key: row.lag
+    }, /*#__PURE__*/React.createElement("td", null, "Lag ", row.lag), /*#__PURE__*/React.createElement("td", {
+      className: "num"
+    }, row.p.toFixed(3)), /*#__PURE__*/React.createElement("td", null, "Not significant"))))), /*#__PURE__*/React.createElement("div", {
+      className: "ml-granger-takeaway"
+    }, "All p-values are above 0.05, so urbanization does not statistically Granger-cause EV sales share in this China time-series test."))), /*#__PURE__*/React.createElement("details", {
     id: "methodology",
     className: "ml-notes methodology-box",
     open: true

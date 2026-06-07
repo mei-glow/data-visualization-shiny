@@ -361,7 +361,7 @@ function TabOverview() {
             title="EV stock proportion by mode and powertrain, 2024"
             sub="Within each powertrain, which vehicle modes dominate."
             mount={mountModeMixPies}
-            callout={<>BEVs span all three modes -> BEV predominantly deployed in 2-and-3 wheelers, while also maintaining a presence in passenger car.</>}
+            callout={<>BEVs span all three modes → BEV predominantly deployed in 2-and-3 wheelers, while also maintaining a presence in passenger car.</>}
           />
         </div>
 
@@ -851,6 +851,46 @@ function TabML() {
             mount={mountChinaDual}
             callout={<>China's urban share went from 49% → 67%; its EV sales share went from <strong>0.01% → 48%</strong>. Adoption accelerated <em>after</em> urbanization had already plateaued in growth rate.</>}
           />
+          <div className="ml-granger-box">
+            <div className="ml-granger-head">
+              <span className="ml-granger-tag">ML</span>
+              <div>
+                <div className="ml-granger-title">Granger result</div>
+                <div className="ml-granger-sub">
+                  China · urbanization → EV sales share · 2010-2024
+                </div>
+              </div>
+            </div>
+
+            <table className="ml-granger-table">
+              <thead>
+                <tr>
+                  <th>Lag</th>
+                  <th>p-value</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { lag: 1, p: 0.334 },
+                  { lag: 2, p: 0.348 },
+                  { lag: 3, p: 0.391 },
+                  { lag: 4, p: 0.499 },
+                ].map(row => (
+                  <tr key={row.lag}>
+                    <td>Lag {row.lag}</td>
+                    <td className="num">{row.p.toFixed(3)}</td>
+                    <td>Not significant</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="ml-granger-takeaway">
+              All p-values are above 0.05, so urbanization does not statistically
+              Granger-cause EV sales share in this China time-series test.
+            </div>
+          </div>
         </div>
 
         {/* ====================== Modeling notes (distinct accent) ====================== */}
