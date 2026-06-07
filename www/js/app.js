@@ -235,64 +235,6 @@ const DEFAULT_FILTERS = {
   income: 'ALL',
   ev: 'ALL'
 };
-function FilterStatusBar() {
-  const f = useFilters();
-  if (!f) return null;
-  const {
-    state,
-    set,
-    reset
-  } = f;
-  const chips = [];
-  if (state.yearMin !== DEFAULT_FILTERS.yearMin || state.yearMax !== DEFAULT_FILTERS.yearMax) {
-    chips.push({
-      k: 'years',
-      label: `Years ${state.yearMin}-${state.yearMax}`,
-      clear: () => set({
-        yearMin: DEFAULT_FILTERS.yearMin,
-        yearMax: DEFAULT_FILTERS.yearMax
-      })
-    });
-  }
-  if (state.country !== 'ALL') chips.push({
-    k: 'country',
-    label: `Country: ${state.country}`,
-    clear: () => set({
-      country: 'ALL'
-    })
-  });
-  if (state.income !== 'ALL') chips.push({
-    k: 'income',
-    label: `Development: ${state.income}`,
-    clear: () => set({
-      income: 'ALL'
-    })
-  });
-  if (state.ev !== 'ALL') chips.push({
-    k: 'ev',
-    label: `Powertrain: ${state.ev}`,
-    clear: () => set({
-      ev: 'ALL'
-    })
-  });
-  if (!chips.length) return null;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "filter-status"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "filter-status-label"
-  }, "Active filters"), chips.map(c => /*#__PURE__*/React.createElement("button", {
-    key: c.k,
-    className: "filter-status-chip",
-    onClick: c.clear,
-    title: "Click to clear"
-  }, c.label, " ", /*#__PURE__*/React.createElement("span", {
-    className: "filter-status-x"
-  }, "\xD7"))), /*#__PURE__*/React.createElement("button", {
-    className: "filter-status-reset",
-    onClick: reset
-  }, "Reset all"));
-}
-
 // =====================================================================
 // Reusable bits
 // =====================================================================
@@ -455,7 +397,6 @@ function ChartCard({
   }, callout)));
 }
 function SectionHeader({
-  eyebrow,
   title,
   sub
 }) {
@@ -465,7 +406,7 @@ function SectionHeader({
     className: "container has-filter"
   }, /*#__PURE__*/React.createElement("h1", {
     className: "section-title"
-  }, title), /*#__PURE__*/React.createElement("div", {
+  }, title), sub && /*#__PURE__*/React.createElement("div", {
     className: "section-sub"
   }, sub)));
 }
@@ -523,10 +464,19 @@ function FilterPanel({
   if (!f) return null;
   const {
     state,
+    draft,
     set,
-    reset
+    apply,
+    reset,
+    dirty
   } = f;
   const countries = ['ALL', ...Array.from(new Set([...Object.keys(window.COUNTRY_STOCK_M || {}), ...(window.SOCIO_2024 || []).map(r => r.country), ...(window.CHOROPLETH_2024 || []).map(r => r.name), ...(window.STRESS_2024 || []).map(r => r.country), ...(window.TOP20_MIX || []).map(r => r.country)].filter(c => c && c !== 'Rest of the world'))).sort((a, b) => a.localeCompare(b))];
+  const yearApplied = state.yearMin !== DEFAULT_FILTERS.yearMin || state.yearMax !== DEFAULT_FILTERS.yearMax;
+  const hasApplied = yearApplied || state.country !== 'ALL' || state.income !== 'ALL' || state.ev !== 'ALL';
+  const segClass = (dim, val) => 'fp-seg' + (draft[dim] === val ? ' selected' : '') + (state[dim] === val && val !== 'ALL' ? ' applied' : '');
+  const toggle = (dim, val) => set({
+    [dim]: draft[dim] === val ? 'ALL' : val
+  });
   return /*#__PURE__*/React.createElement("aside", {
     className: "filter-panel " + (open ? 'open' : 'closed'),
     "aria-label": "Filters"
@@ -539,16 +489,28 @@ function FilterPanel({
   }, /*#__PURE__*/React.createElement(I.chev, null)), /*#__PURE__*/React.createElement("div", {
     className: "filter-panel-body"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "fp-head"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "fp-title"
-  }, /*#__PURE__*/React.createElement(I.filter, null), " Filters"), /*#__PURE__*/React.createElement("h4", null, "Year range"), /*#__PURE__*/React.createElement("div", {
-    className: "fp-year"
+  }, /*#__PURE__*/React.createElement(I.filter, null), " Filters"), /*#__PURE__*/React.createElement("div", {
+    className: "fp-actions"
+  }, dirty && /*#__PURE__*/React.createElement("button", {
+    className: "fp-apply",
+    onClick: apply
+  }, "Apply"), hasApplied && /*#__PURE__*/React.createElement("button", {
+    className: "fp-reset",
+    onClick: reset
+  }, "Reset"))), /*#__PURE__*/React.createElement("h4", {
+    className: yearApplied ? 'applied' : ''
+  }, "Year range"), /*#__PURE__*/React.createElement("div", {
+    className: "fp-year" + (draft.yearMin !== state.yearMin || draft.yearMax !== state.yearMax ? ' selected' : '') + (yearApplied ? ' applied' : '')
   }, /*#__PURE__*/React.createElement("input", {
     type: "number",
     min: 2010,
     max: 2024,
-    value: state.yearMin,
+    value: draft.yearMin,
     onChange: e => set({
-      yearMin: Math.min(parseInt(e.target.value || 2010, 10), state.yearMax)
+      yearMin: Math.min(parseInt(e.target.value || 2010, 10), draft.yearMax)
     })
   }), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -558,16 +520,15 @@ function FilterPanel({
     type: "number",
     min: 2010,
     max: 2024,
-    value: state.yearMax,
+    value: draft.yearMax,
     onChange: e => set({
-      yearMax: Math.max(parseInt(e.target.value || 2024, 10), state.yearMin)
+      yearMax: Math.max(parseInt(e.target.value || 2024, 10), draft.yearMin)
     })
-  })), /*#__PURE__*/React.createElement("h4", null, "Development Groups"), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("h4", {
+    className: state.income !== 'ALL' ? 'applied' : ''
+  }, "Development Groups"), /*#__PURE__*/React.createElement("div", {
     className: "fp-segments"
   }, [{
-    v: 'ALL',
-    label: 'All development groups'
-  }, {
     v: 'High',
     label: 'Developed'
   }, {
@@ -578,47 +539,32 @@ function FilterPanel({
     label: 'Developing, lower income'
   }].map(opt => /*#__PURE__*/React.createElement("button", {
     key: opt.v,
-    className: "fp-seg " + (state.income === opt.v ? 'active' : ''),
-    onClick: () => set({
-      income: opt.v
-    })
+    className: segClass('income', opt.v),
+    onClick: () => toggle('income', opt.v)
   }, /*#__PURE__*/React.createElement("span", {
     className: "dot"
-  }), " ", opt.label))), /*#__PURE__*/React.createElement("h4", null, "Country"), /*#__PURE__*/React.createElement("select", {
-    value: state.country,
+  }), " ", opt.label))), /*#__PURE__*/React.createElement("h4", {
+    className: state.country !== 'ALL' ? 'applied' : ''
+  }, "Country"), /*#__PURE__*/React.createElement("select", {
+    className: (draft.country !== 'ALL' ? 'selected' : '') + (state.country !== 'ALL' ? ' applied' : ''),
+    value: draft.country,
     onChange: e => set({
       country: e.target.value
     })
   }, countries.map(c => /*#__PURE__*/React.createElement("option", {
     key: c,
     value: c
-  }, c === 'ALL' ? '- All countries -' : c))), /*#__PURE__*/React.createElement("div", {
-    className: "fp-meta"
-  }, "When set, country-level charts highlight or filter to this market."), /*#__PURE__*/React.createElement("h4", null, "EV type"), /*#__PURE__*/React.createElement("div", {
-    className: "fp-segments"
-  }, ['ALL', 'BEV', 'PHEV', 'FCEV'].map(t => /*#__PURE__*/React.createElement("button", {
+  }, c === 'ALL' ? '- All countries -' : c))), /*#__PURE__*/React.createElement("h4", {
+    className: state.ev !== 'ALL' ? 'applied' : ''
+  }, "EV type"), /*#__PURE__*/React.createElement("div", {
+    className: "fp-segments fp-segments-scroll"
+  }, ['BEV', 'PHEV', 'FCEV'].map(t => /*#__PURE__*/React.createElement("button", {
     key: t,
-    className: "fp-seg " + (state.ev === t ? 'active' : ''),
-    onClick: () => set({
-      ev: t
-    })
+    className: segClass('ev', t),
+    onClick: () => toggle('ev', t)
   }, /*#__PURE__*/React.createElement("span", {
     className: "dot"
-  }), " ", t === 'ALL' ? 'All powertrains' : t))), /*#__PURE__*/React.createElement("button", {
-    className: "fp-clear",
-    onClick: reset
-  }, "Reset all filters"), /*#__PURE__*/React.createElement("div", {
-    className: "fp-meta",
-    style: {
-      marginTop: 18,
-      paddingTop: 14,
-      borderTop: '1px solid var(--border)'
-    }
-  }, /*#__PURE__*/React.createElement("strong", {
-    style: {
-      color: 'var(--ink-2)'
-    }
-  }, "Cross-chart filtering."), ' ', "Filters apply to country/income-aware charts (bubble, stress test, socio, choropleth). Time-series charts respect the year range.")));
+  }), " ", t)))));
 }
 
 // =====================================================================
@@ -628,7 +574,6 @@ function TabOverview() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "GLOBAL SNAPSHOT",
     title: "The Global EV Transition, at a Glance",
     sub: "Where the world stands in 2024 - and where it's headed by 2030."
   }), /*#__PURE__*/React.createElement("div", {
@@ -756,7 +701,6 @@ function TabAdoption() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "ADOPTION TRENDS",
     title: "Who is winning the EV race?",
     sub: "Three big players, one inflection point, and the moment growth went exponential."
   }), /*#__PURE__*/React.createElement("div", {
@@ -874,7 +818,6 @@ function TabInfra() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "INFRASTRUCTURE & DEMAND",
     title: "Chicken or Egg?",
     sub: "Do chargers lead EVs, or follow them?"
   }), /*#__PURE__*/React.createElement("div", {
@@ -1070,7 +1013,6 @@ function TabMarket() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "MARKET COMPOSITION",
     title: "What kind of EV, and where?",
     sub: "BEV vs PHEV split, the global geography of adoption, and whether the fleet is turning over fast enough for 2030."
   }), /*#__PURE__*/React.createElement("div", {
@@ -1117,7 +1059,6 @@ function TabSocio() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "SOCIOECONOMIC & POLICY",
     title: "Is EV adoption equitable?",
     sub: "EV penetration vs charging infrastructure density, gas prices, and transport emissions."
   }), /*#__PURE__*/React.createElement("div", {
@@ -1184,7 +1125,6 @@ function TabML() {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-body"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
-    eyebrow: "ML & ASSOCIATION",
     title: "What is associated with EV adoption?",
     sub: "A pooled OLS describes EV sales from country fundamentals; the adoption gap shows which countries beat or fall short of that benchmark - paired with the time-series Granger evidence from the Infrastructure tab."
   }), /*#__PURE__*/React.createElement("div", {
@@ -1361,11 +1301,15 @@ function MethodologyModal({
 // =====================================================================
 // Top chrome - brand + nav
 // =====================================================================
-function TopBar() {
+// Single-row top bar: brand on the left, all tabs on the right.
+function TopBar({
+  active,
+  onChange
+}) {
   return /*#__PURE__*/React.createElement("div", {
-    className: "brandbar"
+    className: "topbar"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "brandbar-inner"
+    className: "topbar-inner"
   }, /*#__PURE__*/React.createElement("div", {
     className: "brand"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1373,20 +1317,8 @@ function TopBar() {
   }, "ev"), /*#__PURE__*/React.createElement("div", {
     className: "brand-title"
   }, "E-Mobility Global Transition", /*#__PURE__*/React.createElement("span", {
-    className: "sep"
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
     className: "sub"
   }, "IEA Global EV Outlook 2025"))), /*#__PURE__*/React.createElement("div", {
-    className: "brand-meta"
-  }, /*#__PURE__*/React.createElement("span", null, "2010-2024 historical \xB7 2030 STEPS"))));
-}
-function TabNav({
-  active,
-  onChange
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "tabnav"
-  }, /*#__PURE__*/React.createElement("div", {
     className: "tabs",
     role: "tablist"
   }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
@@ -1394,10 +1326,11 @@ function TabNav({
     role: "tab",
     "aria-selected": active === t.id,
     className: "tab " + (active === t.id ? 'active' : ''),
-    onClick: () => onChange(t.id)
+    onClick: () => onChange(t.id),
+    title: t.label
   }, /*#__PURE__*/React.createElement("span", {
     className: "tab-ico"
-  }, t.icon({})), /*#__PURE__*/React.createElement("span", null, t.label)))));
+  }, t.icon({})), /*#__PURE__*/React.createElement("span", null, t.label))))));
 }
 
 // =====================================================================
@@ -1405,10 +1338,13 @@ function TabNav({
 // =====================================================================
 function App() {
   const [tab, setTab] = useState(0);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  // `applied` is what every chart reads. `draft` is the in-progress edit in the
+  // sidebar — charts do NOT react to it until the user clicks Apply.
+  const [applied, setApplied] = useState(DEFAULT_FILTERS);
+  const [draft, setDraft] = useState(DEFAULT_FILTERS);
+  const filters = applied;
   const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(true);
-  const [navDocked, setNavDocked] = useState(false);
   useEffect(() => {
     if (window.location.hash === '#methodology') {
       setTab(5);
@@ -1430,17 +1366,16 @@ function App() {
     }));
   }, [filters]);
   useEffect(() => {
-    const syncDocked = () => setNavDocked(window.scrollY > 54);
-    syncDocked();
-    window.addEventListener('scroll', syncDocked, {
-      passive: true
-    });
-    return () => window.removeEventListener('scroll', syncDocked);
-  }, []);
-  useEffect(() => {
+    // Clicking a country on the choropleth (or double-clicking to clear) is a
+    // direct map interaction, so it applies immediately to both draft + applied.
     const handleCountry = event => {
       const country = event && event.detail && event.detail.country;
-      if (country) setFilters(f => ({
+      if (!country) return;
+      setApplied(f => ({
+        ...f,
+        country
+      }));
+      setDraft(f => ({
         ...f,
         country
       }));
@@ -1448,14 +1383,27 @@ function App() {
     window.addEventListener('dashboard-set-country', handleCountry);
     return () => window.removeEventListener('dashboard-set-country', handleCountry);
   }, []);
+  // Toggling the sidebar changes content width; nudge Plotly (esp. the geo
+  // choropleth) to resize once the .2s slide transition has settled.
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 240);
+    return () => clearTimeout(t);
+  }, [filterOpen]);
+  const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(applied), [draft, applied]);
   const ctx = useMemo(() => ({
-    state: filters,
-    set: patch => setFilters(f => ({
-      ...f,
+    state: applied,
+    draft,
+    set: patch => setDraft(d => ({
+      ...d,
       ...patch
     })),
-    reset: () => setFilters(DEFAULT_FILTERS)
-  }), [filters]);
+    apply: () => setApplied(draft),
+    reset: () => {
+      setDraft(DEFAULT_FILTERS);
+      setApplied(DEFAULT_FILTERS);
+    },
+    dirty
+  }), [applied, draft, dirty]);
   const openMethodology = event => {
     event.preventDefault();
     setMethodologyOpen(true);
@@ -1463,14 +1411,14 @@ function App() {
   return /*#__PURE__*/React.createElement(FilterCtx.Provider, {
     value: ctx
   }, /*#__PURE__*/React.createElement("div", {
-    className: (filterOpen ? 'dashboard-shell filter-open' : 'dashboard-shell filter-closed') + (navDocked ? ' nav-docked' : '')
-  }, /*#__PURE__*/React.createElement(TopBar, null), /*#__PURE__*/React.createElement(TabNav, {
+    className: filterOpen ? 'dashboard-shell filter-open' : 'dashboard-shell filter-closed'
+  }, /*#__PURE__*/React.createElement(TopBar, {
     active: tab,
     onChange: setTab
   }), /*#__PURE__*/React.createElement(FilterPanel, {
     open: filterOpen,
     onToggle: () => setFilterOpen(v => !v)
-  }), /*#__PURE__*/React.createElement(FilterStatusBar, null), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     "data-screen-label": String(tab).padStart(2, '0') + ' ' + TABS[tab].label
   }, tab === 0 && /*#__PURE__*/React.createElement(TabOverview, null), tab === 1 && /*#__PURE__*/React.createElement(TabAdoption, null), tab === 2 && /*#__PURE__*/React.createElement(TabInfra, null), tab === 3 && /*#__PURE__*/React.createElement(TabMarket, null), tab === 4 && /*#__PURE__*/React.createElement(TabSocio, null), tab === 5 && /*#__PURE__*/React.createElement(TabML, null)), /*#__PURE__*/React.createElement(Footer, {
     onMethodology: openMethodology

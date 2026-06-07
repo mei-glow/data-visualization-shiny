@@ -47,31 +47,6 @@ const DEFAULT_FILTERS = {
   ev: 'ALL',
 };
 
-function FilterStatusBar() {
-  const f = useFilters();
-  if (!f) return null;
-  const { state, set, reset } = f;
-  const chips = [];
-  if (state.yearMin !== DEFAULT_FILTERS.yearMin || state.yearMax !== DEFAULT_FILTERS.yearMax) {
-    chips.push({ k: 'years', label: `Years ${state.yearMin}-${state.yearMax}`, clear: () => set({ yearMin: DEFAULT_FILTERS.yearMin, yearMax: DEFAULT_FILTERS.yearMax }) });
-  }
-  if (state.country !== 'ALL') chips.push({ k: 'country', label: `Country: ${state.country}`, clear: () => set({ country: 'ALL' }) });
-  if (state.income !== 'ALL')  chips.push({ k: 'income',  label: `Development: ${state.income}`,   clear: () => set({ income: 'ALL' }) });
-  if (state.ev !== 'ALL')      chips.push({ k: 'ev',      label: `Powertrain: ${state.ev}`,    clear: () => set({ ev: 'ALL' }) });
-  if (!chips.length) return null;
-  return (
-    <div className="filter-status">
-      <span className="filter-status-label">Active filters</span>
-      {chips.map(c => (
-        <button key={c.k} className="filter-status-chip" onClick={c.clear} title="Click to clear">
-          {c.label} <span className="filter-status-x">×</span>
-        </button>
-      ))}
-      <button className="filter-status-reset" onClick={reset}>Reset all</button>
-    </div>
-  );
-}
-
 // =====================================================================
 // Reusable bits
 // =====================================================================
@@ -212,12 +187,12 @@ function ChartCard({ title, sub, callout, children, mount, deps = [] }) {
   );
 }
 
-function SectionHeader({ eyebrow, title, sub }) {
+function SectionHeader({ title, sub }) {
   return (
     <div className="section-band">
       <div className="container has-filter">
         <h1 className="section-title">{title}</h1>
-        <div className="section-sub">{sub}</div>
+        {sub && <div className="section-sub">{sub}</div>}
       </div>
     </div>
   );
@@ -255,7 +230,7 @@ function Kpi({ label, value, sub, accent }) {
 function FilterPanel({ open, onToggle }) {
   const f = useFilters();
   if (!f) return null;
-  const { state, set, reset } = f;
+  const { state, draft, set, apply, reset, dirty } = f;
 
   const countries = ['ALL', ...Array.from(new Set([
     ...Object.keys(window.COUNTRY_STOCK_M || {}),
@@ -264,6 +239,19 @@ function FilterPanel({ open, onToggle }) {
     ...(window.STRESS_2024 || []).map(r => r.country),
     ...(window.TOP20_MIX || []).map(r => r.country),
   ].filter(c => c && c !== 'Rest of the world'))).sort((a, b) => a.localeCompare(b))];
+
+  // A dimension is "applied" (shown orange) when its committed value is non-default.
+  const yearApplied = state.yearMin !== DEFAULT_FILTERS.yearMin || state.yearMax !== DEFAULT_FILTERS.yearMax;
+  const hasApplied = yearApplied || state.country !== 'ALL' || state.income !== 'ALL' || state.ev !== 'ALL';
+
+  // class for a segment/control: 'selected' = staged in draft, 'applied' = committed (orange)
+  const segClass = (dim, val) =>
+    'fp-seg' +
+    (draft[dim] === val ? ' selected' : '') +
+    (state[dim] === val && val !== 'ALL' ? ' applied' : '');
+
+  // Clicking a selected segment again clears it back to the "all" default.
+  const toggle = (dim, val) => set({ [dim]: draft[dim] === val ? 'ALL' : val });
 
   return (
     <aside className={"filter-panel " + (open ? 'open' : 'closed')} aria-label="Filters">
@@ -277,54 +265,51 @@ function FilterPanel({ open, onToggle }) {
         <I.chev />
       </button>
       <div className="filter-panel-body">
-      <div className="fp-title"><I.filter /> Filters</div>
-
-      <h4>Year range</h4>
-      <div className="fp-year">
-        <input type="number" min={2010} max={2024} value={state.yearMin}
-          onChange={e => set({ yearMin: Math.min(parseInt(e.target.value||2010,10), state.yearMax) })} />
-        <span style={{ color: 'var(--muted)' }}>→</span>
-        <input type="number" min={2010} max={2024} value={state.yearMax}
-          onChange={e => set({ yearMax: Math.max(parseInt(e.target.value||2024,10), state.yearMin) })} />
+      <div className="fp-head">
+        <div className="fp-title"><I.filter /> Filters</div>
+        <div className="fp-actions">
+          {dirty && <button className="fp-apply" onClick={apply}>Apply</button>}
+          {hasApplied && <button className="fp-reset" onClick={reset}>Reset</button>}
+        </div>
       </div>
 
-      <h4>Development Groups</h4>
+      <h4 className={yearApplied ? 'applied' : ''}>Year range</h4>
+      <div className={"fp-year" + (draft.yearMin !== state.yearMin || draft.yearMax !== state.yearMax ? ' selected' : '') + (yearApplied ? ' applied' : '')}>
+        <input type="number" min={2010} max={2024} value={draft.yearMin}
+          onChange={e => set({ yearMin: Math.min(parseInt(e.target.value||2010,10), draft.yearMax) })} />
+        <span style={{ color: 'var(--muted)' }}>→</span>
+        <input type="number" min={2010} max={2024} value={draft.yearMax}
+          onChange={e => set({ yearMax: Math.max(parseInt(e.target.value||2024,10), draft.yearMin) })} />
+      </div>
+
+      <h4 className={state.income !== 'ALL' ? 'applied' : ''}>Development Groups</h4>
       <div className="fp-segments">
         {[
-          { v:'ALL',   label: 'All development groups' },
           { v:'High',  label: 'Developed' },
           { v:'Upper-middle', label: 'Developing' },
           { v:'Lower-middle', label: 'Developing, lower income' },
         ].map(opt => (
-          <button key={opt.v} className={"fp-seg " + (state.income === opt.v ? 'active' : '')}
-            onClick={() => set({ income: opt.v })}>
+          <button key={opt.v} className={segClass('income', opt.v)}
+            onClick={() => toggle('income', opt.v)}>
             <span className="dot" /> {opt.label}
           </button>
         ))}
       </div>
 
-      <h4>Country</h4>
-      <select value={state.country} onChange={e => set({ country: e.target.value })}>
+      <h4 className={state.country !== 'ALL' ? 'applied' : ''}>Country</h4>
+      <select className={(draft.country !== 'ALL' ? 'selected' : '') + (state.country !== 'ALL' ? ' applied' : '')}
+        value={draft.country} onChange={e => set({ country: e.target.value })}>
         {countries.map(c => <option key={c} value={c}>{c === 'ALL' ? '- All countries -' : c}</option>)}
       </select>
-      <div className="fp-meta">When set, country-level charts highlight or filter to this market.</div>
 
-      <h4>EV type</h4>
-      <div className="fp-segments">
-        {['ALL','BEV','PHEV','FCEV'].map(t => (
-          <button key={t} className={"fp-seg " + (state.ev === t ? 'active' : '')}
-            onClick={() => set({ ev: t })}>
-            <span className="dot" /> {t === 'ALL' ? 'All powertrains' : t}
+      <h4 className={state.ev !== 'ALL' ? 'applied' : ''}>EV type</h4>
+      <div className="fp-segments fp-segments-scroll">
+        {['BEV','PHEV','FCEV'].map(t => (
+          <button key={t} className={segClass('ev', t)}
+            onClick={() => toggle('ev', t)}>
+            <span className="dot" /> {t}
           </button>
         ))}
-      </div>
-
-      <button className="fp-clear" onClick={reset}>Reset all filters</button>
-
-      <div className="fp-meta" style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-        <strong style={{ color: 'var(--ink-2)' }}>Cross-chart filtering.</strong>{' '}
-        Filters apply to country/income-aware charts (bubble, stress test, socio, choropleth). Time-series
-        charts respect the year range.
       </div>
       </div>
     </aside>
@@ -338,7 +323,6 @@ function TabOverview() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="GLOBAL SNAPSHOT"
         title="The Global EV Transition, at a Glance"
         sub="Where the world stands in 2024 - and where it's headed by 2030."
       />
@@ -451,7 +435,6 @@ function TabAdoption() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="ADOPTION TRENDS"
         title="Who is winning the EV race?"
         sub="Three big players, one inflection point, and the moment growth went exponential."
       />
@@ -548,7 +531,6 @@ function TabInfra() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="INFRASTRUCTURE & DEMAND"
         title="Chicken or Egg?"
         sub="Do chargers lead EVs, or follow them?"
       />
@@ -701,7 +683,6 @@ function TabMarket() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="MARKET COMPOSITION"
         title="What kind of EV, and where?"
         sub="BEV vs PHEV split, the global geography of adoption, and whether the fleet is turning over fast enough for 2030."
       />
@@ -751,7 +732,6 @@ function TabSocio() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="SOCIOECONOMIC & POLICY"
         title="Is EV adoption equitable?"
         sub="EV penetration vs charging infrastructure density, gas prices, and transport emissions."
       />
@@ -801,7 +781,6 @@ function TabML() {
   return (
     <div className="tab-body">
       <SectionHeader
-        eyebrow="ML & ASSOCIATION"
         title="What is associated with EV adoption?"
         sub="A pooled OLS describes EV sales from country fundamentals; the adoption gap shows which countries beat or fall short of that benchmark - paired with the time-series Granger evidence from the Infrastructure tab."
       />
@@ -957,44 +936,33 @@ function MethodologyModal({ onClose }) {
 // =====================================================================
 // Top chrome - brand + nav
 // =====================================================================
-function TopBar() {
+// Single-row top bar: brand on the left, all tabs on the right.
+function TopBar({ active, onChange }) {
   return (
-    <div className="brandbar">
-      <div className="brandbar-inner">
+    <div className="topbar">
+      <div className="topbar-inner">
         <div className="brand">
           <div className="brand-mark">ev</div>
           <div className="brand-title">
             E-Mobility Global Transition
-            <span className="sep">·</span>
             <span className="sub">IEA Global EV Outlook 2025</span>
           </div>
         </div>
-        <div className="brand-meta">
-          <span>2010-2024 historical · 2030 STEPS</span>
+        <div className="tabs" role="tablist">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={active === t.id}
+              className={"tab " + (active === t.id ? 'active' : '')}
+              onClick={() => onChange(t.id)}
+              title={t.label}
+            >
+              <span className="tab-ico">{t.icon({})}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function TabNav({ active, onChange }) {
-  return (
-    <div className="tabnav">
-      <div className="tabs" role="tablist">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            role="tab"
-            aria-selected={active === t.id}
-            className={"tab " + (active === t.id ? 'active' : '')}
-            onClick={() => onChange(t.id)}
-          >
-            <span className="tab-ico">{t.icon({})}</span>
-            <span>
-              {t.label}
-            </span>
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -1005,10 +973,13 @@ function TabNav({ active, onChange }) {
 // =====================================================================
 function App() {
   const [tab, setTab] = useState(0);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  // `applied` is what every chart reads. `draft` is the in-progress edit in the
+  // sidebar — charts do NOT react to it until the user clicks Apply.
+  const [applied, setApplied] = useState(DEFAULT_FILTERS);
+  const [draft, setDraft] = useState(DEFAULT_FILTERS);
+  const filters = applied;
   const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(true);
-  const [navDocked, setNavDocked] = useState(false);
 
   useEffect(() => {
     if (window.location.hash === '#methodology') {
@@ -1029,25 +1000,37 @@ function App() {
     window.dispatchEvent(new CustomEvent('dashboard-filter-change', { detail: filters }));
   }, [filters]);
   useEffect(() => {
-    const syncDocked = () => setNavDocked(window.scrollY > 54);
-    syncDocked();
-    window.addEventListener('scroll', syncDocked, { passive: true });
-    return () => window.removeEventListener('scroll', syncDocked);
-  }, []);
-  useEffect(() => {
+    // Clicking a country on the choropleth (or double-clicking to clear) is a
+    // direct map interaction, so it applies immediately to both draft + applied.
     const handleCountry = (event) => {
       const country = event && event.detail && event.detail.country;
-      if (country) setFilters(f => ({ ...f, country }));
+      if (!country) return;
+      setApplied(f => ({ ...f, country }));
+      setDraft(f => ({ ...f, country }));
     };
     window.addEventListener('dashboard-set-country', handleCountry);
     return () => window.removeEventListener('dashboard-set-country', handleCountry);
   }, []);
+  // Toggling the sidebar changes the content width. Plotly charts (especially
+  // the geo choropleth) don't recompute their size on their own, so nudge them
+  // with a resize event once the panel's slide transition (.2s) has settled.
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 240);
+    return () => clearTimeout(t);
+  }, [filterOpen]);
 
+  const dirty = useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(applied),
+    [draft, applied]
+  );
   const ctx = useMemo(() => ({
-    state: filters,
-    set: (patch) => setFilters(f => ({ ...f, ...patch })),
-    reset: () => setFilters(DEFAULT_FILTERS),
-  }), [filters]);
+    state: applied,                                   // charts read the applied filters
+    draft,                                            // sidebar edits the draft
+    set: (patch) => setDraft(d => ({ ...d, ...patch })),
+    apply: () => setApplied(draft),                   // commit draft → charts re-render
+    reset: () => { setDraft(DEFAULT_FILTERS); setApplied(DEFAULT_FILTERS); },
+    dirty,
+  }), [applied, draft, dirty]);
   const openMethodology = (event) => {
     event.preventDefault();
     setMethodologyOpen(true);
@@ -1055,14 +1038,9 @@ function App() {
 
   return (
     <FilterCtx.Provider value={ctx}>
-      <div className={(filterOpen ? 'dashboard-shell filter-open' : 'dashboard-shell filter-closed') + (navDocked ? ' nav-docked' : '')}>
-        <TopBar />
-        <TabNav
-          active={tab}
-          onChange={setTab}
-        />
+      <div className={filterOpen ? 'dashboard-shell filter-open' : 'dashboard-shell filter-closed'}>
+        <TopBar active={tab} onChange={setTab} />
         <FilterPanel open={filterOpen} onToggle={() => setFilterOpen(v => !v)} />
-        <FilterStatusBar />
         <div data-screen-label={String(tab).padStart(2,'0') + ' ' + TABS[tab].label}>
           {tab === 0 && <TabOverview />}
           {tab === 1 && <TabAdoption />}
