@@ -1260,7 +1260,7 @@ function Footer({
     rel: "noreferrer"
   }, "Download raw data"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h5", null, "Team"), /*#__PURE__*/React.createElement("div", {
     className: "credits-list"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Pham Quynh Trang"), " \xB7 Lead, UI / UX"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Nguyen Thi Bao Tien"), " \xB7 Data pipeline"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Tran Phuong Mai"), " \xB7 Dashboard build"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Nguyen Khanh Ngoc"), " \xB7 ML & forecasting"))))));
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Pham Quynh Trang"), " \xB7 Lead, UI / UX, Dashboard UI"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Nguyen Thi Bao Tien"), " \xB7 Data pipeline"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Tran Phuong Mai"), " \xB7 Dashboard build"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Nguyen Khanh Ngoc"), " \xB7 ML & forecasting"))))));
 }
 function MethodologyModal({
   onClose

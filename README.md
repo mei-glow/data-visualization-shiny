@@ -258,7 +258,7 @@ report/
 
 | Member | Primary responsibility |
 | --- | --- |
-| Pham Quynh Trang | Project lead and UI/UX |
+| Pham Quynh Trang | Project lead, UI/UX, Dashboard UI |
 | Nguyen Thi Bao Tien | Data preprocessing pipeline |
 | Tran Phuong Mai | Dashboard implementation |
 | Nguyen Khanh Ngoc | ML and forecasting analysis |

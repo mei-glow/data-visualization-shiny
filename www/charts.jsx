@@ -1721,6 +1721,9 @@ function mountAdoptionGapBar(el, filters) {
     return;
   }
 
+  // Only outline a bar when a *specific* country is selected (not the "ALL" default,
+  // which matches every country and would otherwise outline the whole chart).
+  const focus = !!(filters && filters.country && filters.country !== 'ALL');
   const mkTrace = (group, color) => {
     const g = rows.filter(r => r.group === group);
     return {
@@ -1729,8 +1732,8 @@ function mountAdoptionGapBar(el, filters) {
       x: g.map(r => r.gapLog),
       marker: {
         color: color, opacity: 0.9,
-        line: { color: g.map(r => fCountryMatches(filters, r.country) ? '#0F172A' : color),
-                width: g.map(r => fCountryMatches(filters, r.country) ? 2 : 0) },
+        line: { color: g.map(r => focus && fCountryMatches(filters, r.country) ? '#0F172A' : color),
+                width: g.map(r => focus && fCountryMatches(filters, r.country) ? 1.2 : 0) },
       },
       customdata: g.map(r => [r.evSales, r.expected]),
       hovertemplate: '<b>%{y}</b><br>Adoption gap (log): %{x:+.2f}'
